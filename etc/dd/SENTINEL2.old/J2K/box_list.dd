@@ -1,0 +1,3 @@
+box_list||*
+#
+BOX|@box|*|*|% option("#num_boxes",BOX@lookup(0,"lbox")+1) %|% option("#offset",0)

@@ -1,0 +1,66 @@
+#!/bin/bash
+
+exe=`basename "$0"`
+function usage
+{
+	echo "Usage: $exe <gipp-folder> <gipp-type> <file-type> <datatake-id> [<nucid>]"
+	exit 1
+} >&2
+
+# gipp_start <gipp-filename>
+function gipp_start
+{
+	local field="${1:42:15}"
+	echo "${field/T/}"
+}
+
+# gipp_stop <gipp-filename>
+function gipp_stop
+{
+	local field="${1:58:15}"
+	echo "${field/T/}"
+}
+
+
+# gipp_sort 
+function gipp_sort
+{
+	sort -k 1.26
+}
+
+[ $# -lt 4 ] && usage
+
+
+gipps="$1"
+gipp_type="$2"
+file_type="$3"
+dt="$4"
+dt_sat="${dt:0:2}"
+dt_sat_unit="${dt:2:1}"
+dt_time="${dt#*_}"; dt_time="${dt_time%%.*}"; dt_time="${dt_time/T/}"
+nuctid=""
+
+
+[ -n "$5" ] && nuctid=$(expr "$5" + 0)
+
+selected=""
+for gipp in `cd "$gipps">/dev/null; ls ${dt_sat}[_${dt_sat_unit}]_OPER_GIP_${gipp_type}_*.$file_type 2>/dev/null | gipp_sort; cd - >/dev/null`; do
+	[ -f "$gipps/$gipp" ] || continue
+
+	[ "$dt_time" -lt `gipp_start "$gipp"` ] && continue
+	[ "$dt_time" -gt `gipp_stop "$gipp"` ] && continue
+	
+	# confirm with the NUC ID in case of R2EQOB
+	if [ "$gipp_type" == "R2EQOB" ] && [ -n "$nuctid" ]; then
+		gipp_nuctid=`recread "$gipp" nuc_id | sed 's/^.* = //'`
+		[ "$nuctid" -ne "$gipp_nuctid" ] && continue
+	fi
+
+	selected="$gipps/$gipp"
+done
+
+# take default if blank
+[ -z "$selected" ] && eval selected=\$GIPP_$gipp_type
+
+[ -z "$selected" ] && exit 1
+echo "$selected"

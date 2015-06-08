@@ -1,0 +1,619 @@
+<GS2_RADIOS2_PARAMETERS xsi:noNamespaceSchemaLocation="T:\SENTINEL-2\04-SEGMENT_SOL\02-Spec-SSI-S2\03-GS\03-Schemas_Image_S2\GS2_GIPP\gs2_radios2_parameters.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <HEADER>
+    <SATELLITE>S2A</SATELLITE>
+    <SCHEME_VERSION>String</SCHEME_VERSION>
+    <PRODUCTION_DATE>2001-12-17T09:30:47.0Z</PRODUCTION_DATE>
+    <PROVIDER>String</PROVIDER>
+    <CONSUMER>String</CONSUMER>
+  </HEADER>
+    <SPECIFIC_HEADER>
+    <TYPE>S2A_RADIO_S2_PARAMETERS_FILE</TYPE>
+    <APPLICABILITY_DATE>2007-01-01T00:00:00.0Z</APPLICABILITY_DATE>
+    <APPLICABILITY_END_DATE>2020-01-01T00:00:00.0Z</APPLICABILITY_END_DATE>
+    <VERSION_NUMBER>0001</VERSION_NUMBER>
+    <PARAMETER_ID>String</PARAMETER_ID>
+  </SPECIFIC_HEADER>
+    <DATA>
+        <TRACE_MODE>true</TRACE_MODE>
+
+        <NOMINAL_SCENARIO>
+            <EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B00                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>0</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B01                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>1</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B02                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>2</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B03                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>3</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B04                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>4</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B05                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>5</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B06                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>6</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B07                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>7</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B08                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>8</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B09                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>9</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B10                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>10</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B11                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>11</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+
+                <!-- ================================================ -->
+                <!--              BAND : B12                          -->
+                <!-- ================================================ -->
+                <BAND_EQUALIZATION>
+                    <BAND_ID>12</BAND_ID>
+                    <EQUALIZATION_FLAG>true</EQUALIZATION_FLAG>
+                    <OFFSET>true</OFFSET>
+                    <DARK_SIGNAL_NON_UNIFORMITY>true</DARK_SIGNAL_NON_UNIFORMITY>
+                </BAND_EQUALIZATION>
+            </EQUALIZATION>
+
+
+            <SWIR_REARRANGEMENT>true</SWIR_REARRANGEMENT>
+
+            <CROSSTALK_OPTICAL>true</CROSSTALK_OPTICAL>
+            <CROSSTALK_ELECTRONIC>true</CROSSTALK_ELECTRONIC>
+            <REMOVE_BLIND_PIXELS>true</REMOVE_BLIND_PIXELS>
+            <DEFECTIVE_PIXELS>true</DEFECTIVE_PIXELS>
+            <RESTORATION>true</RESTORATION>
+
+            <BINNING>true</BINNING>
+            <PIXELS_NO_DATA>true</PIXELS_NO_DATA>
+            <SATURATED_PIXELS>both</SATURATED_PIXELS>
+
+        </NOMINAL_SCENARIO>
+
+        <RESTORATION_PARAMETERS_LIST>
+
+            <!-- ================================================ -->
+            <!--              BAND : B00                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='0'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>12</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+
+
+            <!-- ================================================ -->
+            <!--              BAND : B01                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='1'>
+                <RESTORATION_SCENARIO>F_CONVOLUTION</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4094</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>256</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>256</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>1024</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>2.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>10</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4094</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>2.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+
+
+            <!-- ================================================ -->
+            <!--              BAND : B02                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='2'>
+                <RESTORATION_SCENARIO>F_CONVOLUTION</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+
+
+            <!-- ================================================ -->
+            <!--              BAND : B03                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='3'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B04                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='4'>
+                <RESTORATION_SCENARIO>F_CONVOLUTION</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B05                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='5'>
+                <RESTORATION_SCENARIO>F_CONVOLUTION</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B06                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='6'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B07                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='7'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B08                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='8'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B09                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='9'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B10                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='10'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B11                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='11'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+            
+
+            <!-- ================================================ -->
+            <!--              BAND : B12                          -->
+            <!-- ================================================ -->
+            <RESTORATION_PARAMETERS band_id='12'>
+                <RESTORATION_SCENARIO>NONE</RESTORATION_SCENARIO>
+                <LEVELLING_VALUES>
+                    <XMIN>0</XMIN>
+                    <XMAX>4095</XMAX>
+                </LEVELLING_VALUES>
+                <F_CONVOLUTION_PARAMETERS>
+                    <BLOCK_SIZE_X>192</BLOCK_SIZE_X>
+                    <BLOCK_SIZE_Y>192</BLOCK_SIZE_Y>
+                    <NORMALIZATION_CONST>1</NORMALIZATION_CONST>
+                </F_CONVOLUTION_PARAMETERS>
+                <W_DENOISING_PARAMETERS>
+                    <SEGMENT_SIZE>512</SEGMENT_SIZE>
+                    <L2_NORM_AMPLIFICATION_COEFFICIENT>3.5</L2_NORM_AMPLIFICATION_COEFFICIENT>
+                    <SEGMENT_OVERLAP_SIZE>13</SEGMENT_OVERLAP_SIZE>
+                    <OBJECTIVE_NOISE_SIGMA>10</OBJECTIVE_NOISE_SIGMA>
+                    <RADIOMETRIC_MAXIMAL_VALUE>4095</RADIOMETRIC_MAXIMAL_VALUE>
+                    <MAXIMAL_DENOISING_THRESHOLD>1.5</MAXIMAL_DENOISING_THRESHOLD>
+                </W_DENOISING_PARAMETERS>
+            </RESTORATION_PARAMETERS>
+
+        </RESTORATION_PARAMETERS_LIST>
+
+        <PIXELS_NO_DATA_PARAMETERS>
+          <BAND band_id="00">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="01">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="02">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="03">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="04">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="05">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="06">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="07">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="08">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="09">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="10">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="11">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+          <BAND band_id="12">
+            <INTERPOLATION_FILTER>
+              <INTERNAL_FILTER>
+                <FILTER_NAME>BCO</FILTER_NAME>
+              </INTERNAL_FILTER>
+            </INTERPOLATION_FILTER>
+            <MISSING_LINES_THRESHOLD>3</MISSING_LINES_THRESHOLD>
+          </BAND>
+        </PIXELS_NO_DATA_PARAMETERS>
+
+        <SPATIAL_MARGIN>
+          <BAND band_id="00"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="01"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="02"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="03"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="04"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="05"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="06"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="07"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="08"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="09"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="10"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="11"><MARGIN>0</MARGIN></BAND>
+          <BAND band_id="12"><MARGIN>0</MARGIN></BAND>
+        </SPATIAL_MARGIN>
+    </DATA>
+</GS2_RADIOS2_PARAMETERS>

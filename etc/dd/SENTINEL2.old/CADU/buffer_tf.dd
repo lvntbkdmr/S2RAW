@@ -1,0 +1,4 @@
+buffer|Sentinel-2 CADU file|*
+#
+~num_tf|SLong|*|% TRANSFER_FRAME@DIM
+TRANSFER_FRAME|@TransferFrame|*|*|inf|% option("#offset",0)

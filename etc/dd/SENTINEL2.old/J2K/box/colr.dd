@@ -1,0 +1,6 @@
+colr||*
+#
+METH|UChar|Colour specification method id|1
+PREC|SChar|Reserved|1
+APPROX|UChar|Colourspace approximation|1
+cspace|?METH-1|colrUnion|*

@@ -1,0 +1,8 @@
+OPS Vector |*|*
+#
+orbit_num|ULong|orbit|4
+orbit_angle|UShort|rad x 10000|*
+status_code|UChar|code|*
+~gps_pvt_invalid|UChar|flag|% bits(status_code,5)
+~ops_source|String|AOC_OOP/GPS_PVT|% bits(status_code,6)?"GPS_PVT":"AOC_OOP"
+~ops_invalid|UChar|flag|% bits(status_code,7)

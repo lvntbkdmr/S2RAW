@@ -1,0 +1,13 @@
+SIZ||*
+#
+Rsiz|UShort|capabilities of the codestream|2
+Xsiz|ULong|Width of the reference grid|4
+Ysiz|ULong|Height of the reference grid|4
+XOsiz|ULong|Horizontal offset|4
+YOsiz|ULong|Vertical offset|4
+XTsiz|ULong|Width of one reference tile|4
+YTsiz|ULong|Height of one reference tile|4
+XTOsiz|ULong|Tile Horizontal offset|4
+YTOsiz|ULong|Tile Vertical offset|4
+Csiz_num|UShort|Number of components in the image|2
+Csiz|@Csiz|Component sizes|*|% Csiz_num

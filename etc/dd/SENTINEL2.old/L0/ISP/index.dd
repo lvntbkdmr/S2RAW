@@ -1,0 +1,7 @@
+Auto-Descriptive|ISP format auto descriptor between MSI and SAD packets|*
+#
+ext_hdr|?option("#isp_type","AISP")[0,0]=="A"|HeaderUnion|*
+~dfep|UChar|*|% ext_hdr@type~"*DFEPAnnotation"
+prim_hdr|@PrimaryHeader|*|*|*
+~is_msi|UChar|flag|% vcid=(option("#use_vcid",0)&&dfep)?ext_hdr#dfep.vcid:-1; isp_size=option("#isp_size",0); (vcid>=0)?(vcid<=2):(((isp_size+0)>0?(isp_size+0):(prim_hdr.spkln+7))>10000)
+~dictionary|String|*|% isp_type=swap(option("#isp_type","ISP"),"ISP",is_msi?"MSI":"SAD"); isp_type[0,0]=="A"?isp_type[1,100]:isp_type 

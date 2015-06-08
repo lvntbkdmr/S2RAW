@@ -1,0 +1,62 @@
+DataTM_3_25_AOCS_121_6_AOCS-TM1|S2 SAD SRDB=ASY_ANC32121 APID=182: AOCS-TM1 TM(3,25,PRID=AOCS SID=121 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+STR_1_SCV_OP|UChar|SCV STR_1 Operational Status SRDB=AST0A003|1|*
+STR_2_SCV_OP|UChar|SCV STR_2 Operational Status SRDB=AST0B003|1|*
+STR_3_SCV_OP|UChar|SCV STR_3 Operational Status SRDB=AST0C003|1|*
+GPS_A_SCV_OP|UChar|SCV GPS_A Operational Status SRDB=AST08089|1|*
+GPS_B_SCV_OP|UChar|SCV GPS_B Operational Status SRDB=AST18089|1|*
+IMU_1_SCV_OP|UChar|SCV IMU_1 Operational Status SRDB=ASTA7483|1|*
+IMU_2_SCV_OP|UChar|SCV IMU_2 Operational Status SRDB=ASTB7489|1|*
+IMU_3_SCV_OP|UChar|SCV IMU_3 Operational Status SRDB=ASTC7495|1|*
+IMU_4_SCV_OP|UChar|SCV IMU_4 Operational Status SRDB=ASTD7501|1|*
+mode|UChar|number SRDB=AST82350|1|*
+subMode|UChar|Manager.MAN.Output: Current sub-mode number SRDB=AST82351|1|*
+gseIsValid|UChar|Determinator.GSE.Output: GSE validity SRDB=AST82352|1|*
+gseAttQualId|UChar|Determinator.GSE.Output: GSE attitude quality SRDB=AST82353|1|*
+gseTimeCucRawVecCoarse|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format (seconds) SRDB=AST82354-AST82358|4|5
+gseTimeCucRawVecFine|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format (sub-seconds) SRDB=AST82359-AST82363|4|5
+gseTimeCucRawRec|@gseTimeCuc|*|*|5|-40
+~gseTimeCuc|DateTime|1980|% option("#aocs_old_timetag",0)?{--.gseTimeCucRawRec}[iter]time:({--.gseTimeCucRawVecCoarse}[iter]+{--.gseTimeCucRawVecFine}[iter]*2^-24)/24/3600+5 %| 5
+#gseTimeCucRawVec_0_0|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [0][0] SRDB=AST82354|4|*
+#gseTimeCucRawVec_0_1|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [0][1] SRDB=AST82355|4|*
+#gseTimeCucRawVec_0_2|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [0][2] SRDB=AST82356|4|*
+#gseTimeCucRawVec_0_3|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [0][3] SRDB=AST82357|4|*
+#gseTimeCucRawVec_0_4|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [0][4] SRDB=AST82358|4|*
+#gseTimeCucRawVec_1_0|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [1][0] SRDB=AST82359|4|*
+#gseTimeCucRawVec_1_1|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [1][1] SRDB=AST82360|4|*
+#gseTimeCucRawVec_1_2|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [1][2] SRDB=AST82361|4|*
+#gseTimeCucRawVec_1_3|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [1][3] SRDB=AST82362|4|*
+#gseTimeCucRawVec_1_4|ULong|Determinator.GSE.GainLocal: Time of estimates in cuc format [1][4] SRDB=AST82363|4|*
+gseAttEstQuaternion|Double|Determinator.GSE.Output: Attitude quaternion estimate|8|4,5
+#gseAttEstVec_qVec_CJ_0_0|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [0][0] SRDB=AST82364|8|*
+#gseAttEstVec_qVec_CJ_0_1|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [0][1] SRDB=AST82365|8|*
+#gseAttEstVec_qVec_CJ_0_2|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [0][2] SRDB=AST82366|8|*
+#gseAttEstVec_qVec_CJ_0_3|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [0][3] SRDB=AST82367|8|*
+#gseAttEstVec_qVec_CJ_0_4|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [0][4] SRDB=AST82368|8|*
+#gseAttEstVec_qVec_CJ_1_0|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [1][0] SRDB=AST82369|8|*
+#gseAttEstVec_qVec_CJ_1_1|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [1][1] SRDB=AST82370|8|*
+#gseAttEstVec_qVec_CJ_1_2|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [1][2] SRDB=AST82371|8|*
+#gseAttEstVec_qVec_CJ_1_3|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [1][3] SRDB=AST82372|8|*
+#gseAttEstVec_qVec_CJ_1_4|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [1][4] SRDB=AST82373|8|*
+#gseAttEstVec_qVec_CJ_2_0|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [2][0] SRDB=AST82374|8|*
+#gseAttEstVec_qVec_CJ_2_1|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [2][1] SRDB=AST82375|8|*
+#gseAttEstVec_qVec_CJ_2_2|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [2][2] SRDB=AST82376|8|*
+#gseAttEstVec_qVec_CJ_2_3|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [2][3] SRDB=AST82377|8|*
+#gseAttEstVec_qVec_CJ_2_4|Double|Determinator.GSE.Output: Attitude quaternion estimate vector part [2][4] SRDB=AST82378|8|*
+#gseAtEstVec_qSca_CJ_0_0|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][0] SRDB=AST82379|8|*
+#gseAtEstVec_qSca_CJ_0_0|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][0] SRDB=AST82379|8|*
+#gseAtEstVec_qSca_CJ_0_1|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][1] SRDB=AST82380|8|*
+#gseAtEstVec_qSca_CJ_0_2|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][2] SRDB=AST82381|8|*
+#gseAtEstVec_qSca_CJ_0_3|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][3] SRDB=AST82382|8|*
+#gseAtEstVec_qSca_CJ_0_4|Double|Determinator.GSE.Output: Attitude quaternion estimate scalar part [0][4] SRDB=AST82383|8|*
+gseAttitude|@gseAttitude|*|*|5
+gseImuRateEst_C_0|Double|Determinator.GSE.Output: Estimate at latest IMU rate input [0] SRDB=AST82384|8|*
+gseImuRateEst_C_1|Double|Determinator.GSE.Output: Estimate at latest IMU rate input [1] SRDB=AST82385|8|*
+gseImuRateEst_C_2|Double|Determinator.GSE.Output: Estimate at latest IMU rate input [2] SRDB=AST82386|8|*
+gseInnovStrA_U_0|Double|Determinator.GSE.GainLocal: Innovation for str1 [0] SRDB=AST82387|8|*
+gseInnovStrA_U_1|Double|Determinator.GSE.GainLocal: Innovation for str1 [1] SRDB=AST82388|8|*
+gseInnovStrA_U_2|Double|Determinator.GSE.GainLocal: Innovation for str1 [2] SRDB=AST82389|8|*
+gseInnovStrB_U_0|Double|Determinator.GSE.GainLocal: Innovation for str2 [0] SRDB=AST82390|8|*
+gseInnovStrB_U_1|Double|Determinator.GSE.GainLocal: Innovation for str2 [1] SRDB=AST82391|8|*
+gseInnovStrB_U_2|Double|Determinator.GSE.GainLocal: Innovation for str2 [2] SRDB=AST82392|8|*

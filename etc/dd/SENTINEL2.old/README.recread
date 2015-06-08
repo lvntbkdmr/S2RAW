@@ -1,0 +1,95 @@
+
+
+Contents
+1) Configuration
+2) Data Dictionary Parameters
+  2.1) ISP data dictionary parameters
+  2.2) CADU data dictionary parameters
+
+______________________________________________________________________________________________________________________________________
+
+
+1) Configuration
+  ---------------
+
+set CQFD_DICTIONARY_PATH to the SENTINEL2 directory, e.g.
+#export CQFD_DICTIONARY_PATH="$HOME/SENTINEL2"
+
+
+2) Data Dictionary Parameters
+  ----------------------------
+
+2.1) ISP data dictionary parameters
+    --------------------------------
+
+run recread with the name of the S2 ISP file to analyse, e.g.
+#recread <isp-file> -r
+
+Variables (set via the -D option) can be used from the command line to tailor the format in real time:
+
+-D offset=<bytes>
+assume the first ISP is to be found after the given offset from start of file (in bytes)
+
+-D isp_type=<[A]MSI|SAD|ISP>
+to force the type of Sentinel-2 ISP (MSI or SAD) and with or without DFEP annotations.
+By default an AISP (annotated ISP) structure is assumed, the type of ISP (SAD or MSI) being automatically detected
+(MSI assumed when the first ISP is at least 1000 bytes long)
+To read ISPs without DFEP annotations, use "ISP" as isp_type, or even "MSI" or "SAD" to bypass automatic detection 
+
+e.g. on a corrupt file, we can read 23 ISPs by providing an offset to the first ISP to skip the corrupt 
+beginning of file, and simulating a DFEP header of 23 bytes:
+
+# recread GS2A_20091210T235100_RRR_01.corrupt -base=ISP -r \
+  -D offset=5322 -D isp_offset=23 -D obtref=944524260.592926 \
+  -last=22 \
+  msiop primary_header.spkscnt.ssc primary_header.spkid.apid
+
+-D isp_offset=<bytes>
+to simulate a fixed header of a given size prepended to every ISP (for instance the DFEP headers, or prepended to the DFEP header).
+e.g. to read ISPs in the PDGS L0 product files, an isp_offset of 2 bytes must be set to take into account the 2-bytes 'DPC header'
+prepended to the AISPs:
+
+# recread S2B_OPER_MSI_L0__GR_CGS1_20131031T173807_S20091210T221734_D12_B10.bin -D isp_offset=2 -base=ISP ...
+
+-D isp_size=<bytes>|DFEP|ISP
+to define the method by which the isp_size is determined:
+<bytes>: a fixed size for every ISPs
+DFEP: read dynamically from the DFEP annotation (default if a DFEP header is present)
+ISP: read dynamically from the ISP primary header (default if a DFEP header is not present)
+
+-D sad_icd=<version>
+to define the SAD ICD version to be applied for the structure definition of SAD packets.
+<version>: the version of the SAD ICD, e.g. 7 or 9 (defaulting to 9)
+
+-D obtref=<obt-seconds> -D utcref=<yyyy-mm-ddThh:mm:ss.ssssss>
+to set a reference time vector (obt,utc) to adjust the UTC translation of the scene time
+
+-D image_bytes=<bytes>
+for MSI ISPs, to limit decoding of a given number of bytes of the image buffer (defaulting to 0). 
+Set to -1 for decoding the complete image buffer.
+
+-D isp_comp=<0/1>
+for MSI ISPs, to force the compression status of the MSI ISP as a compressed (1) or uncompressed (0) instead of using the modop field
+
+
+2.2) CADU data dictionary parameters
+    ---------------------------------
+
+run recread with the name of the S2 CADU file to analyse, e.g.
+#recread examples/CADU_TDS1_D2012_03_01T09_54_48_Ch1_VICD3 -base=CADU sync_marker -x
+
+run recread to extract the CADU payload and provide it in input to another recread process to decode the ISP contents:
+#recread examples/CADU_TDS1_D2012_03_01T09_54_48_Ch1_VICD3 -base=CADU -D frame_bytes=-1 -b payload | recread - -base=ISP -D isp_type=ISP
+
+Variables (set via the -D option) can be used from the command line to tailor the format in real time:
+
+-D offset=<bytes>
+assume the first CADU is to be found after the given offset from start of file (in bytes)
+
+-D frame_bytes=<bytes>
+to limit decoding of a given number of bytes of the CADU payload, defaulting to zero. Set to -1 to extract the full payload
+
+-D hide_idle_frame_data=0|1
+to hide/unhide the payload section of idle frames. The payload of idle frames is hidden by default
+
+

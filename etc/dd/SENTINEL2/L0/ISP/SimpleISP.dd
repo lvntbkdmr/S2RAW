@@ -1,0 +1,6 @@
+Sentinel-2 Simple ISP|Sentinel-2 downlinked source packet headers|*
+#
+~len|SLong|*|% dfep=option("#isp_type","AISP")[0,0]=="A"; isp_size=option("#isp_size",dfep?"DFEP":"ISP"); (((isp_size+0)>0)?isp_size+0:((((isp_size =="DFEP")&&dfep)?{ext_hdr#dfep.isp_len}:{prim_hdr.spkln})+7))+{ext_hdr}@OFFSET_NEXT %|
+ext_hdr|?option("#isp_type","AISP")[0,0]=="A"|HeaderUnion|*
+prim_hdr|@PrimaryHeader|*|*
+obt|@OBT|*|*|*|% prim_hdr@OFFSET_NEXT+option("#obt_offset",0)

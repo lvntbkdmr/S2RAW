@@ -1,0 +1,10 @@
+Sentinel-2 SAD ISP|Sentinel-2 SAD downlinked source packet| {+len} + {+IDLEPKT}@size
+#
+~len|SLong|*|% dfep=option("#isp_type","AISP")[0,0]=="A"; isp_size=option("#isp_size",dfep?"DFEP":"ISP"); (((isp_size+0)>0)?isp_size+0:((((isp_size =="DFEP")&&dfep)?{ext_hdr#dfep.isp_len}:{prim_hdr.spkln})+7))+{ext_hdr}@OFFSET_NEXT %|
+ext_hdr|?option("#isp_type","AISP")[0,0]=="A"|HeaderUnion|*
+hktm|@../HKTMData|*|0|*
+prim_hdr|@../../PrimaryHeader|*|*|1
+scnd_hdr|?{prim_hdr.spkid.scnd_hdr_flag}|SecondaryHeaderUnion|*|*
+data|?{hktm.data_switch}|DataUnion|% {}@SIZE-2-scnd_hdr@OFFSET_NEXT
+crc|UShort|CRC Word|*|*|% len-2
+IDLEPKT|@../../SimpleISP|*|% {+len} %|% option("#idle",0)==0?0:(((#filesize>0)&&(crc@POS_NEXT>=#filesize))?0:IDLEPKT@lookup(1,"{prim_hdr.spkid.id}!=2047")) %|

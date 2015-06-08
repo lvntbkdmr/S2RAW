@@ -1,0 +1,33 @@
+Auto-Descriptive|General auto descriptor|*
+#
+# CQFD implicit
+cqfd_tag|String|CQFD signature|4|*|0
+~is_cqfd|UChar|is is a CQFD implicit dictionary|% cqfd_tag=="CQFD"
+dd_len|String|*|2|*
+cqfd_dd|String|*|dd_len|*
+#
+# LUM format detector
+# look for the typical inner data type string
+lum_format_str|String|Format Identifier|4|*|8
+~is_lum|UChar|*|% strlookup(lum_format_str,"08LI","09LI","10LI","11LI","12LI","13LI","14LI","15LI","16LI","FLOL")>=0
+#
+# J2K detectors
+j2k_sign|String|J2K signature|4|*|4
+~is_j2k_jp2|UChar|it is a J2K jp2 file|% j2k_sign=="jP  "
+#
+j2k_soc_marker|UChar|J2K codestream soc start marker|1|2|0
+~is_j2k_cs|UChar|it is a J2K Codestream|% (j2k_soc_marker[0]=='0xff') && (j2k_soc_marker[1]=='0x4f')
+#
+# CADU detectors (check for 2 sync markers at position #offset+0 and #offset+2044)
+sync1|ULong|*|4|*|% option("#offset",0)
+sync2|ULong|*|4|*|% option("#offset",0)+2044
+~is_cadu|UChar|it is a CADU stream|% (sync1=='0x1acffc1d')&&(sync2=='0x1acffc1d')
+#
+# Transfer Frames: check for 3 consecutive frame counter integers
+fcnt1|ULong|*|3|*|% option("#offset",0)+2
+fcnt2|ULong|*|3|*|% option("#offset",0)+2+1912
+fcnt3|ULong|*|3|*|% option("#offset",0)+2+2*1912
+~is_tf|UChar|it is a Transfer Frame stream|% (fcnt2==fcnt1+1) && (fcnt3==fcnt2+1)
+#
+# default is L0
+~dictionary|String||% dd=option("#dd",""); dd!=""?dd:(is_j2k_jp2||is_cqfd?cqfd_dd:(is_lum?"/LUM":(is_j2k_cs?"J2K":(is_cadu?"CADU/buffer":(is_tf?"CADU/buffer_tf":"L0")))))

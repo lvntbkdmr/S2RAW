@@ -1,0 +1,22 @@
+MarkerSegmentUnion|Union Switch for Marker Segment data|*
+#
+UKN|UChar|*|1|% len@DIM?len[0]-2:0
+SOC|UChar|*|1|0
+SOT|@SOT|*|*
+SOD|UChar|*|1|% len@DIM?len[0]-2:0
+EOC|UChar|*|1|% len@DIM?len[0]-2:0
+SIZ|@SIZ|*|*
+COD|@COD|*|*
+COC|UChar|*|1|% len@DIM?len[0]-2:0
+RGN|UChar|*|1|% len@DIM?len[0]-2:0
+QCD|UChar|*|1|% len@DIM?len[0]-2:0
+QCC|UChar|*|1|% len@DIM?len[0]-2:0
+POD|UChar|*|1|% len@DIM?len[0]-2:0
+TLM|UChar|*|1|% len@DIM?len[0]-2:0
+PLM|UChar|*|1|% len@DIM?len[0]-2:0
+PLT|UChar|*|1|% len@DIM?len[0]-2:0
+PPM|UChar|*|1|% len@DIM?len[0]-2:0
+PPT|UChar|*|1|% len@DIM?len[0]-2:0
+SOP|UChar|*|1|% len@DIM?len[0]-2:0
+EPH|UChar|*|1|% len@DIM?len[0]-2:0
+CME|@CME|*|*

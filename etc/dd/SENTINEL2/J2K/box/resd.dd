@@ -1,0 +1,11 @@
+resd||*
+#
+~VRd|Double|Horizontal Display grid resolution (pts/meter) |% VRdN/VRdD*VRdE
+~HRd|Double|Vertical Display grid resolution (pts/meter) |% HRdN/HRdD*HRdE
+VRdN|UShort|Vertical Display grid resolution numerator|2
+VRdD|UShort|Vertical Display grid resolution denominator|2
+HRdN|UShort|Horizontal Display grid resolution numerator|2
+HRdD|UShort|Horizontal Display grid resolution denominator|2
+VRdE|SChar|Vertical Display grid resolution exponent|1
+HRdE|SChar|Horizontal Display grid resolution exponent|1
+

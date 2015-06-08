@@ -1,0 +1,11 @@
+LUM| LUM Header|% {+size} %| LITTLE-ENDIAN
+#LUM| LUM Header|% ({+num_lines}+1)*{+line_size} %| LITTLE-ENDIAN
+#
+#~filename|String|Filename|% #filename
+~size|ULong|*|% (num_lines+1)*line_size
+num_pixels|ULong|Number of Columns|4
+num_lines|ULong|Number of Lines|4
+format|String|Format Identifier|4
+~line_size|UShort|*|% num_pixels==0?12:(num_pixels*choose(strlookup(format,"08LI","FLOL"),2,1,4))
+image|?choose(strlookup({--.}format,"08LI","FLOL"),1,0,2)|CanvasTypes|*|num_lines,num_pixels|% line_size
+#~end|UChar|*|0

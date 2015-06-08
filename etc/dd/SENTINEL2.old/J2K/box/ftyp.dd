@@ -1,0 +1,5 @@
+ftyp|*|*
+#
+BR|String|Brand|4
+MinV|ULong|Minor version|4
+CL|String|Compatibility|4|% ({-.}@SIZE-16)/4

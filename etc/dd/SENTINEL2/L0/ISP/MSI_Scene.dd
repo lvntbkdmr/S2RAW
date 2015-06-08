@@ -1,0 +1,9 @@
+MSI_Scene| MSI Scene | *
+#
+~idx|ULLong|*|% iter
+~scene_time|DateTime|1980|% ISP.0.scnd_hdr.sys_anc_data.scene_obt.time
+~cgs_time|DateTime|2000|% ISP[0]ext_hdr@TYPE~"*DFEP*"?{ISP.0.ext_hdr#dfep.acqt.time}+0:0
+~age|Double|minutes|% ISP[0]ext_hdr@TYPE~"*DFEP*"?(cgs_time-scene_time+datenum("2000-01-01",1980))*24*60:nan
+~isp_count|ULong|*|% isp_list@DIM
+~ISP|@.ISP|*|{-.isp_list}[iter]|isp_list@DIM
+~isp_list|SelectMap|.ISP|% scnd_hdr.sys_anc_data.scene_obt.time=={--.QUERY.SCENES}[iter1]scene_time

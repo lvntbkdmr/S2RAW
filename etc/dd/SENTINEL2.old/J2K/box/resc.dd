@@ -1,0 +1,10 @@
+resc||*
+#
+~VRc|Double|Horizontal Capture grid resolution (pts/meter) |% VRdN/VRdD*VRdE
+~HRc|Double|Vertical Capture grid resolution (pts/meter) |% HRdN/HRdD*HRdE
+VRcN|UShort|Vertical Capture grid resolution numerator|2
+VRcD|UShort|Vertical Capture grid resolution denominator|2
+HRcN|UShort|Horizontal Capture grid resolution numerator|2
+HRcD|UShort|Horizontal Capture grid resolution denominator|2
+VRcE|SChar|Vertical Capture grid resolution exponent|1
+HRcE|SChar|Horizontal Capture grid resolution exponent|1

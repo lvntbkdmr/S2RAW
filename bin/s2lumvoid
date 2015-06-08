@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Usage:
+# s2voidlum [<format>] > <out-file>
+# where <format> is any of "08LI","09LI","10LI","11LI","12LI","13LI","14LI","15LI","16LI","FLOL"
+# the default format is 08LI
+
+function usage
+{
+	echo
+        echo "Usage:" `basename "$0"` "[ options ] <datatake-id>"
+        echo "Options:"
+        echo "  -o <out-dir>"
+        echo "  -f <lum-format>"
+        exit 1
+} >&2
+
+if [ $# -lt 1 ]; then
+        usage
+fi
+
+out_dir="."
+format="08LI"
+
+while getopts "o:f:" opt; do
+	case $opt in
+	o) out_dir="$OPTARG";;
+	f) format="$OPTARG";;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+dt=`basename "$1"`
+#dt_date="${dt:4:15}"
+dt_date="00000000T000000"
+filename="${out_dir}/${dt}.B00D00.${dt_date}_${dt_date}.TDI-NA.lum"
+							
+printf '\x00\x00\x00\x00\x00\x00\x00\x00%.4s' "$format" >"$filename"

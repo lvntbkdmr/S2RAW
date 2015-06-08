@@ -1,0 +1,8 @@
+S2 MSI ISP System Ancillary Data|*|*
+#
+scene_obt|@../OBT|*|*
+~time_corr|UShort|119 ns|% bits(tmp_word,12,12)
+~msi_sync_time_vcu|UChar|flag true if VCU on-board clock is synchronised|% bits(tmp_word,11)
+~msi_sync_time_pps|UChar|lsb of coarse time of last time synchronisation message|% bits(tmp_word,10)
+~sys_op|UShort|System Operation field of the SAD field|% bits(tmp_word,0,10)
+tmp_word|ULong|tmp buffer TTTTTTTTTTTTMMSSSSSSSSSS |3

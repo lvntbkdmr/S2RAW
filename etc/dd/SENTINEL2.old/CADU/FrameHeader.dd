@@ -1,0 +1,11 @@
+FrameHeader|Frame Header|*
+#
+id_field|UShort|First 16 bits|2|*|0
+~version|UChar|Transfer Frame Version Number|% bits(id_field,14,2)
+~scid|UChar|Spacecraft Identifier|% bits(id_field,6,8)
+~vcid|UChar|Virtual Channel Identifier|% bits(id_field,0,6)
+fcnt|ULong|Virtual Channel Frame Count|3
+sig_field|UChar|Signalling Field|1
+~replay|UChar|Replay Flag|% bits(sig_field,7,1)
+~rsvd|UChar|Rsvd Flag|% bits(sig_field,0,7)
+crc|UShort|Frame Error Control|2

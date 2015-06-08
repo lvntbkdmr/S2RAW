@@ -1,0 +1,11 @@
+RADIOS2_EQUALIZATION_ONGROUND_COEFF|RADIOS2_EQUALIZATION_ONGROUND_COEFF|*
+#
+tdi_config_strlen|aUShort|*|2
+tdi_config|String|*|tdi_config_strlen
+#epsilon|Double|*|*
+num_pixels|UShort|*|2
+num_coeff_d|UChar|*|1
+COEFF_A|Double|*|*|12,num_pixels
+COEFF_B|Double|*|*|12,num_pixels
+COEFF_C|Double|*|*|12,num_pixels
+COEFF_D|Double|*|*|12,num_coeff_d,num_pixels

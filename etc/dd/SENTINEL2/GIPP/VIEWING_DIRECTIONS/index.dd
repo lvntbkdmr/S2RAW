@@ -1,0 +1,6 @@
+VIEWING_DIRECTIONS|VIEWING_DIRECTIONS|*|Local
+#
+cqfd_header|@/CQFD_Header|*|*
+applicability|aDateTime|*|19|3
+num_bands|aUShort|*|2
+BAND_VIEWDIR|@VIEWDIR|*|*|num_bands

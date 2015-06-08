@@ -1,0 +1,14 @@
+BAND|BAND|% 4*8*.num_tp_lines*12*.num_tp_cols+4 %|Local
+#
+band_num|UShort|*|*
+~band_id|String|Band Identifier|% choose(band_num,"N/A","B1","B2","B3","B4","B5","B6","B7","B8","B8a","B9","B10","B11","B12")
+num_det_pixels_fr|UShort|*|*
+~num_det_pixels|UShort|*|% det=image_metadata@lookup(1,"{}[iter]{1}>0"); det<0?0:image_metadata[det]{2}
+lon|Double|*|*|.num_tp_lines,12,.num_tp_cols
+lat|Double|*|*|.num_tp_lines,12,.num_tp_cols
+sun_az|Double|*|*|.num_tp_lines,12,.num_tp_cols
+sun_el|Double|*|*|.num_tp_lines,12,.num_tp_cols
+~image_metadata|SLong|*|% image_idx=vector(13,12) [max({.IMAGE_FOLDER.IMAGE_DATA}@lookup($2*13+$1,"(detector_id-1)*13+band_num"),0)]; meta=vector(13,12,3) [choose($3,0,image_idx[$1,$2],.IMAGE_FOLDER.IMAGE_DATA[image_idx[$1,$2]]LUM.num_lines,.IMAGE_FOLDER.IMAGE_DATA[image_idx[$1,$2]]LUM.num_pixels)]; meta[{--.band_num},iter1,iter] %|12,3
+~tdi_config|String|*|% det=image_metadata@lookup(1,"{}[iter]{1}>0"); det<0?"NA":.IMAGE_FOLDER.IMAGE_DATA[image_metadata[iter]{0}]tdi_config
+~first_scene|@.IMAGE_FOLDER.IMAGE_DATA|first_scene|% {--.image_metadata}[iter]{0} %| 12 
+~image_data|@.IMAGE_FOLDER.IMAGE_DATA|LUM.image|% {--.image_metadata}[iter]{0} %| 12 

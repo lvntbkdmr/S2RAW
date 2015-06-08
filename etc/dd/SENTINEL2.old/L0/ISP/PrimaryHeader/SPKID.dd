@@ -1,0 +1,7 @@
+SPKID|CCSDS SPKID|*
+#
+id|UShort|binary fields|*|*|
+~version_num|UChar|version|% bits(id,13,3)
+~type|UChar|*|% bits(id,12)
+~scnd_hdr_flag|UChar|flag|% bits(id,11)
+~apid|UShort|apid|% bits(id,0,11)

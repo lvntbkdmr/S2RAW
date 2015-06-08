@@ -1,0 +1,6 @@
+OBT|S2 MSI ISP CCSDS Time Record|*
+#
+# OBT is referenced on 1980-01-06 at midnight
+~time|DateTime|1980|% lsec=option("#leap_seconds",35); utc_convert=option("#gps2utc",0)?19-lsec:0; (utc_convert+sec+subsec*2^-24)/24/3600+5
+sec|ULong|seconds|4
+subsec|ULong|2^-24 seconds|3

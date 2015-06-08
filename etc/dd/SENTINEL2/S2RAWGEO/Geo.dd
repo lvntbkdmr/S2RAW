@@ -1,0 +1,11 @@
+s2rawgeo|s2rawgeo|*|Local
+#
+header|@/CQFD_Header|*|*
+num_bands|UShort|*|*
+num_scenes|ULong|*|*
+tpdf|UShort|Tie Point Densification Factor|*
+num_margin_scenes|UShort|*|*
+num_tp_lines|ULong|*|*
+num_tp_cols|UShort|*|*
+LINE_TIME|DateTime|2000|*|num_tp_lines
+BAND|@Band|*|*|num_bands

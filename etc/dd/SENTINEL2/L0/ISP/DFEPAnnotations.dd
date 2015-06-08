@@ -1,0 +1,5 @@
+DFEPAnnotations|Sentinels DFEP annotation buffer|*
+#
+~count|SLong|*|% ANNOTATION@DIM
+ANNOTATION|@DFEPAnnotation|*|*|inf|
+

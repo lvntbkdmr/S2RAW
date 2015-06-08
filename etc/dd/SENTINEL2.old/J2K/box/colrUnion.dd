@@ -1,0 +1,4 @@
+colr_Union|*|*
+#
+EnumCS|ULong|Enumerated colourspace|4
+PROFILE|UChar|ICC profile|*|% {-.}@SIZE-11

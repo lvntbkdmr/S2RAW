@@ -1,0 +1,127 @@
+coarse_error=option("input_coreg_error",30);
+prec=10^option("output_coreg_precision",1);
+
+
+reftime=option("reftime",null);
+reftime=isnullstr(reftime)?nan:datenum(reftime,2000);
+
+coreg_lmin=min(coreg_loffset);
+coreg_lmax=max(coreg_loffset);
+
+
+lines_per_tp=16*144/tpdf;
+pixels_per_tp=(2548-1)/(num_tp_cols-1);
+
+margin_lines=lines_per_tp*{tpdf}*{num_margin_scenes};
+
+refline=LINE_TIME@maxlookup(reftime);
+refline=const((isnan(reftime)?0:(lines_per_tp*(refline-(LINE_TIME[refline]-reftime)/(3.608/86400/tpdf))-margin_lines)));
+
+pos=vector(13,12,2) [
+	raster("BAND.band_num="<<$1<<($3?".lat":".lon"),""<<$2,
+		lines_per_tp*prec, pixels_per_tp,(coreg_loffset[$1,$2]-margin_lines-refline+coarse_error/2)*prec, 0
+	) @buffer((coreg_lmax-coreg_lmin+1)*prec) @cyclic(-180,180)
+];
+
+l=lines(prec*coarse_error)-coarse_error/2*prec;
+c=columns(1);
+
+pixel_inter=0;
+pixel=vector(2) [2548/2,pixel_inter];
+
+pos_reg=vector(13,12,2,2) [
+	pos[$1,$2,$4][
+		l-(coarse_error/2)*prec,
+		pixel[$3]
+	]ABS
+];
+
+// det,begin/end,lon/lat
+ref_intra=vector(12,2) [const(
+	pos[1,$1,$2][
+		-1*(coarse_error/2)*prec,
+		pixel[0]
+	]ABS
+)];
+
+//ref_intra=vector(12,2,2) [const(pos_reg[1,$1,$2,$3])];
+
+num_bands=3;
+
+dist_intra=vector(num_bands,12) [
+	180/pi*1852*60*(
+	acos(
+		sin(pi/180*ref_intra[$2,1])*sin(pi/180*pos_reg[$1+1,$2,0,1])
+		+(cos(pi/180*ref_intra[$2,1])*cos(pi/180*pos_reg[$1+1,$2,0,1])*cos(pi/180*(pos_reg[$1+1,$2,0,0]-ref_intra[$2,0])))
+	)
+	)
+];
+
+stat_intra=vector(num_bands,12) [stat(dist_intra[$1,$2])];
+min_intra=vector(num_bands,12) [stat_intra[$1,$2]MIN];
+coreg_intra=vector(num_bands,12) [sync(stat_intra[$1,$2],keep(l/prec,dist_intra[$1,$2]>stat_intra[$1,$2]MIN))];
+coreg_intra_ok=vector(num_bands,12) [abs(coreg_intra[$1,$2]/coarse_error*2)<0.95];
+coreg_intra_ok=min(coreg_intra_ok);
+
+
+det=option("det",0);
+ref_intra1=vector(2) [ref_intra[det,$1]];
+pos_intra1=vector(2) [pos_reg[2,det,0,$1]];
+stat_intra1=stat_intra[1,det];
+min_intra1=stat_intra[1,det]MIN;
+dist_intra1=dist_intra[1,det];
+//coreg_intra1=keep(l,dist_intra[1,det]>stat_intra[1,det]MIN);
+coreg_intra1=keep(l,dist_intra1>stat_intra1);
+
+det_ac_pt={VIEWDIR.BAND_VIEWDIR.band_id=B2.VIEWDIR_TDI.0.TAN_PSI_Y};
+
+tie_pixel_inter=vector(11,2) [det_ac_pt[$1]@minlookup(det_ac_pt[$1+1][pixel_inter]),det_ac_pt[$1]@maxlookup(det_ac_pt[$1+1][pixel_inter])];
+tie_pixel_inter=vector(11) [
+	tie_pixel_inter[$1,0]
+	+(tie_pixel_inter[$1,0]==tie_pixel_inter[$1,1]?0:
+		((det_ac_pt[$1+1][pixel_inter]-det_ac_pt[$1][tie_pixel_inter[$1,0]])/(det_ac_pt[$1][tie_pixel_inter[$1,1]]-det_ac_pt[$1][tie_pixel_inter[$1,0]]))
+	)
+];
+
+ref_inter=vector(11,2) [const(
+	pos[1,$1,$2][
+		-1*(coarse_error/2)*prec,
+		tie_pixel_inter[$1]
+	]ABS
+)];
+
+dist_inter=vector(11) [
+	180/pi*1852*60*(
+	acos(
+		sin(pi/180*ref_inter[$1,1])*sin(pi/180*pos_reg[1,$1+1,1,1])
+		+(cos(pi/180*ref_inter[$1,1])*cos(pi/180*pos_reg[1,$1+1,1,1])*cos(pi/180*(pos_reg[1,$1+1,1,0]-ref_inter[$1,0])))
+	)
+	)
+];
+
+stat_inter=vector(11) [stat(dist_inter[$1])];
+min_inter=vector(11) [stat_inter[$1]MIN];
+coreg_inter=vector(11) [sync(stat_inter[$1],keep(l/prec,dist_inter[$1]>stat_inter[$1]MIN))];
+coreg_inter_ok=vector(11) [abs(coreg_inter[$1]/coarse_error*2)<0.95];
+coreg_inter_ok=min(coreg_inter_ok);
+
+coreg_inter_abs=vector(12) [
+	 ($1>0?coreg_inter[0]:0)
+	+($1>1?coreg_inter[1]:0)
+	+($1>2?coreg_inter[2]:0)
+	+($1>3?coreg_inter[3]:0)
+	+($1>4?coreg_inter[4]:0)
+	+($1>5?coreg_inter[5]:0)
+	+($1>6?coreg_inter[6]:0)
+	+($1>7?coreg_inter[7]:0)
+	+($1>8?coreg_inter[8]:0)
+	+($1>9?coreg_inter[9]:0)
+	+($1>10?coreg_inter[10]:0)
+];
+
+coreg_loffset=vector(13,12) [coreg_loffset[$1,$2]-coreg_intra[$1-1,$2]-coreg_inter_abs[$2]];
+
+sync(coreg_intra,coreg_inter,!(coreg_inter_ok&&coreg_intra_ok))
+
+
+

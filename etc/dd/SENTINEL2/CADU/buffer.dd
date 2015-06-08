@@ -1,0 +1,4 @@
+buffer|Sentinel-2 CADU file|*
+#
+~num_cadu|SLong|*|% CADU@DIM
+CADU|@index|*|*|inf|% option("#offset",0)

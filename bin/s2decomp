@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+function wait_pids
+{
+	local -i status=$1; shift
+	local p
+	for p in $@; do
+		wait $p || status=1
+	done
+	return $status
+}
+
+function usage
+{
+        echo
+        echo "Usage:" `basename "$0"` "[ options ] <isp1> <isp2> ..."
+	echo "Options:"
+	echo "  -q (decompress the quicklook)"
+	echo "  -r (to remove the input file if no error at decompression)"
+	echo "  -o <out-dir>"
+	echo "  -m <num-processes>"
+        exit 1
+} >&2
+
+if [ $# -lt 1 ]; then
+	usage
+fi
+
+out_dir="."
+declare -i num_proc=1
+remove_flag=false
+quicklook_flag=false
+
+while getopts "o:m:rq" opt; do
+case $opt in
+o) out_dir="$OPTARG";;
+m) num_proc="$OPTARG";;
+r) remove_flag=true;;
+q) quicklook_flag=true;;
+esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ -n "$out_dir" ] && [ ! -d "$out_dir" ]; then
+	echo "invalid output directory '"$out_dir"'" >&2
+	usage
+fi
+
+
+while [ $# -gt 0 ]; do
+	if [ "$1" == "-" ]; then
+		cat
+	elif [ -d "$1" ]; then
+		find "$1" -type f -name "*.bin"
+	else
+		echo "$1"
+	fi
+	shift
+done | while read file; do stat -c "%s %n" "$file"; done | sort -nr | cut -f2- -d" " | (
+declare -i proc_idx=0
+declare -i status=0
+declare -a pids=()
+while read file; do
+	(
+	ofile=`basename "$file"`
+	ofile="$out_dir/${ofile%.*}.lum"
+
+	if $quicklook_flag; then
+		ExtractionAlbum "$file" "$ofile" 1 1 -1 0
+		status=$?
+	else
+		wdir="$ofile.tmp"
+		mkdir "$wdir"
+		mrcpbg_sol "$file" --wdir "$wdir" \
+			--PSC_jump_stuffing 1 --vcrc 1 \
+			--raw 0 --rawHeader 0 --qualityMask 0 \
+			>/dev/null
+		status=$?
+		if [ $status -ne 0 ]; then
+			printf "\nERROR LOG (%d):\n" $status | cat "$wdir/RESULT/"*.log - "$wdir/RESULT/"*.err >"$ofile.log" 2>&1
+		fi
+		echo "Decompression $file -> $ofile status $status" >&2
+		mv "$wdir/DECOMP/"*.lum "$ofile" >/dev/null 2>&1
+		rm -rf "$wdir"
+	fi
+	$remove_flag && ( [ $status -eq 0 ] || [ $status -eq 2 ] ) && rm "$file"
+	exit $status
+	) &
+	pids=( ${pids[@]} $! )
+	proc_idx=$(( $proc_idx + 1 ))
+
+	if [ $num_proc -ne 0 ] && [ $(( $proc_idx % $num_proc )) -eq 0 ]; then
+		wait_pids $status ${pids[@]}
+		status=$?
+		pids=()
+	fi
+done
+wait_pids $status ${pids[@]}
+)
+exit ${PIPESTATUS[4]}

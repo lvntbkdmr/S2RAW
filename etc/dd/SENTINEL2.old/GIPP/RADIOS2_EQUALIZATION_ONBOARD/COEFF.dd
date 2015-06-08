@@ -1,0 +1,10 @@
+RADIOS2_EQUALIZATION_ONBOARD_COEFF|RADIOS2_EQUALIZATION_ONBOARD_COEFF|*
+#
+tdi_config_strlen|aUShort|*|2
+tdi_config|String|*|tdi_config_strlen
+epsilon|Double|*|*
+num_pixels|UShort|*|2
+COEFF_A1|Double|*|*|12,num_pixels
+COEFF_A2|Double|*|*|12,num_pixels
+COEFF_ZS|Double|*|*|12,num_pixels
+COEFF_D|Double|*|*|12,num_pixels

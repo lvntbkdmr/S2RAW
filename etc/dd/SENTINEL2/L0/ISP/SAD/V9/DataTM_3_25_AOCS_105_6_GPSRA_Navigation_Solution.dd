@@ -1,0 +1,52 @@
+DataTM_3_25_AOCS_105_6_GPSRA_Navigation_Solution|S2 SAD SRDB=ASY_ANC32105 APID=182: GPSRA Navigation Solution (GPSR-SID=213) TM(3,25,PRID=AOCS SID=105 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+GPSA_NAVSOL_ACQ|UChar|GPSA_NAVIGATION_SOL_ATTR_ACQ_FLAG SRDB=AST08004|1|*
+GPSA_NAVSOL_VAL|UChar|GPSA_NAVIGATION_SOL_ATTR_VALID_FLAG SRDB=AST08005|1|*
+GSPA_NS_TS_TIME|ULLong|GPSA_NAV_SOL_TS_FINE SRDB=ASTG8091|8|*
+~GPSA_NS_TS_COAR|ULong|GPSA_NAV_SOL_TS_COARSE SRDB=AST08093|% bits(GSPA_NS_TS_TIME,32,32)
+~GPSA_NS_TSF_SSEC|ULong|Fine_Time SRDB=ASTD8092|% bits(GSPA_NS_TS_TIME,8,24)
+~GPSA_NS_TSF_TYPE|UChar|Time_Type SRDB=ASTD8093|% bits(GSPA_NS_TS_TIME,4,1)
+~GPSA_NS_TSF_SSRC|UChar|Sync_Source SRDB=ASTD8094|% bits(GSPA_NS_TS_TIME,3,1)
+~GPSA_NS_TSF_SMET|UChar|Sync_Method SRDB=ASTD8095|% bits(GSPA_NS_TS_TIME,2,1)
+~GPSA_NS_TSF_SSTS|UChar|Sync_Status SRDB=ASTD8096|% bits(GSPA_NS_TS_TIME,1,1)
+~GPSA_NS_TSF_SYNC|UChar|Sync_Enable_Disable SRDB=ASTD8097|% bits(GSPA_NS_TS_TIME,0,1)
+gpst|@GPST|*|*
+#GPST_SEC|ULong|seconds_1 / GPSA_NAVIGATION_SOL_WORD_00 SRDB=AST08007|4|*
+#GPST_SUBSEC|ULong|fractions_of_a_second_1 / GPSA_NAVIGATION_SOL_WORD_02 SRDB=AST08009|4|*
+NU3_NSM_QUALIN|UShort|/ GPSA_NAVIGATION_SOL_WORD_04 SRDB=AST08011|2|*
+~N_U_3|UChar|not_used ** Duplicated from GST01642 ** SRDB=ASTD1642|% bits(NU3_NSM_QUALIN,15,1)
+~NSM|UChar|Navigation_solution_method* * Duplicated from GST01643 ** SRDB=ASTD1643|% bits(NU3_NSM_QUALIN,12,3)
+~QUAL_INDEX|UShort|Quality_index - related to GPS position accuracy SRDB=ASTD1644|% bits(NU3_NSM_QUALIN,0,12)
+GDOP|UShort|Geometrical_dilution_of_precision / GPSA_NAVIGATION_SOL_WORD_05 SRDB=AST08012|2|*
+MAXURA_MAXFIT_NU|UShort|MAXURA_MAXFIT_NU4_NOFSV / GPSA_NAVIGATION_SOL_WORD_06 SRDB=AST08013|2|*
+~MAX_URA|SChar|maximum_user_range_accuracy ** Duplicated from GST01646 ** SRDB=ASTD1646|% bits(MAXURA_MAXFIT_NU,11,5)
+~MAX_FIT|UChar|maximum_curve_fit_interval_taken_from_all_SV_B4_s_use d_in_current_navigation_solution ** Duplicated from GST01647 ** SRDB=ASTD1647|% bits(MAXURA_MAXFIT_NU,7,4)
+~N_U_4|UChar|not_used ** Duplicated from GST01648 ** SRDB=ASTD1648|% bits(MAXURA_MAXFIT_NU,4,3)
+~NOF_SV|UChar|Nof_SVs_contributing_to_the_nav_solution ** Duplicated from GST01649 ** SRDB=ASTD1649|% bits(MAXURA_MAXFIT_NU,0,4)
+wgs84_pos|SLLong|WGS84 position X,Y,Z (mm)|6|3
+~target|Double|*|% radius=6371*1000; sin_lat=wgs84_pos[2]/1000/radius; lat=asin(sin_lat); lon=atan(wgs84_pos[1],wgs84_pos[0]); tlat_rad=pi/180*option("#tlat",0); target_distance_rad=acos ( sin(tlat_rad)*sin_lat + cos(tlat_rad)*(sqrt(1-sin_lat^2))*cos(lon-pi/180*option("#tlon",0))); target_distance_km=target_distance_rad*180/pi*1.852*60; tdistance=option("#tdistance",-1); tdistance>=0?target_distance_km<tdistance:target_distance_km
+#POS_X_MSB|SLong|X_2D_coordinate_MSB_part_1 / GPSA_NAVIGATION_SOL_WORD_07 SRDB=AST08014|4|*
+#POS_X_LSB|UShort|X_2D_coordinate_LSB_part / GPSA_NAVIGATION_SOL_WORD_09 SRDB=AST08016|2|*
+#POS_Y_MSB|SLong|Y_2D_coordinate_MSB_part_1 / GPSA_NAVIGATION_SOL_WORD_10 SRDB=AST08017|4|*
+#POS_Y_LSB|UShort|Y_2D_coordinate_LSB_part / GPSA_NAVIGATION_SOL_WORD_12 SRDB=AST08019|2|*
+#POS_Z_MSB|SLong|Z_2D_coordinate_MSB_part_1 / GPSA_NAVIGATION_SOL_WORD_13 SRDB=AST08020|4|*
+#POS_Z_LSB|UShort|Z_2D_coordinate_LSB_part / GPSA_NAVIGATION_SOL_WORD_15 SRDB=AST08022|2|*
+wgs84_vel|SLong|WGS84 velocity Vx,Vy,Vz (mm/s)|4|3
+#VEL_X|SLong|X_2D_velocity_1 / GPSA_NAVIGATION_SOL_WORD_16 SRDB=AST08023|4|*
+#VEL_Y|SLong|Y_2D_velocity_1 / GPSA_NAVIGATION_SOL_WORD_18 SRDB=AST08025|4|*
+#VEL_Z|SLong|Z_2D_velocity_1 / GPSA_NAVIGATION_SOL_WORD_20 SRDB=AST08027|4|*
+PDOP|UShort|position_dilution_of_precision / GPSA_NAVIGATION_SOL_WORD_22 SRDB=AST08029|2|*
+TDOP|UShort|time_dilution_of_precision / GPSA_NAVIGATION_SOL_WORD_23 SRDB=AST08030|2|*
+delta_x|SLong|position_error_in_x_direction_1 / GPSA_NAVIGATION_SOL_WORD_24 SRDB=AST08031|4|*
+delta_y|SLong|position_error_in_y_direction_1 / GPSA_NAVIGATION_SOL_WORD_26 SRDB=AST08033|4|*
+delta_z|SLong|position_error_in_z_direction_1 / GPSA_NAVIGATION_SOL_WORD_28 SRDB=AST08035|4|*
+delta_t|SLong|GNSS_system_time_error_1 / GPSA_NAVIGATION_SOL_WORD_30 SRDB=AST08037|4|*
+delta_v_x|SLong|velocity_error_in_x_direction_1 / GPSA_NAVIGATION_SOL_WORD_32 SRDB=AST08039|4|*
+delta_v_y|SLong|velocity_error_in_y_direction_1 / GPSA_NAVIGATION_SOL_WORD_34 SRDB=AST08041|4|*
+delta_v_z|SLong|velocity_error_in_z_direction_1 / GPSA_NAVIGATION_SOL_WORD_36 SRDB=AST08043|4|*
+delta_f|SLong|receiver_clock_frequency_error_1 / GPSA_NAVIGATION_SOL_WORD_38 SRDB=AST08045|4|*
+HEIGHT|ULong|height_above_ellipsoid_1 / GPSA_NAVIGATION_SOL_WORD_40 SRDB=AST08047|4|*
+VERTSPEED|SLong|vertical_speed_1 / GPSA_NAVIGATION_SOL_WORD_42 SRDB=AST08049|4|*
+LONGITUDE|SLong|longitude_1 / GPSA_NAVIGATION_SOL_WORD_44 SRDB=AST08051|4|*
+LATITUDE|SLong|latitude_1 / GPSA_NAVIGATION_SOL_WORD_46 SRDB=AST08053|4|*

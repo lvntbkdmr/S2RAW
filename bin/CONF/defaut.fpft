@@ -1,0 +1,19 @@
+##############################################################################
+
+# FPFT APID configuration file for Sentinel 2 mission
+
+###############################################################################
+
+
+fic_fpft
+
+ModeBitstream	0	# formatting mode of the bit stream
+IHP     	0	# image header presence flag
+IHRP		0	# image header repetition presence flag
+TailleSynchro	0	# synchronization pattern length when bitStream mode is activated
+ValeurSynchro	00	# synchronization pattern value 
+SPKSHLN		54	# secondary header length
+NCRC            1	# number of CRC by STRIP
+PHP             1  	# primary header poresence flag (source packet header)
+
+fin

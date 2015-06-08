@@ -1,0 +1,22 @@
+DataTM_3_25_STR2_105_6_TM_ADB_2|S2 SAD SRDB=SSY_HK_35651 APID=614: TM_ADB_2 TM(3,25,PRID=STR2 SID=105 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+qv1_2|SLong|vector part of altitude quaternion SRDB=SST03001|4|*
+qv2_2|SLong|vector part of altitude quaternion SRDB=SST03002|4|*
+qv3_2|SLong|vector part of altitude quaternion SRDB=SST03003|4|*
+qs_2|SLong|vector part of altitude quaternion SRDB=SST03004|4|*
+rateX_2|SShort|angular rate in BRF SRDB=SST03005|2|*
+rateY_2|SShort|angular rate in BRF SRDB=SST03006|2|*
+rateZ_2|SShort|angular rate in BRF SRDB=SST03007|2|*
+TimeStamp_2|ULLong|Time stamp of the center of integration associated with the attitude SRDB=SST03008|6|*
+julianDate_2|UShort|Julian date used for precission correction SRDB=SST03009|2|*
+vVectorSciX_2|SShort|X coordinate of velocity vector SRDB=SST03010|2|*
+vVectorSciY_2|SShort|Y coordinate of velocity vector SRDB=SST03011|2|*
+vVectorSciZ_2|SShort|Z coordinate of velocity vector SRDB=SST03012|2|*
+GloPar1ADB_2|UChar|Global Parameter 1 ADB SRDB=SSTG3001|1|*
+~altitQuality_2|UChar|altitude quality SRDB=SSTD3013|% bits(GloPar1ADB_2,5,3)
+~isPrecCorr_2|UChar|if set to 1, precession correction applied SRDB=SSTD3014|% bits(GloPar1ADB_2,4,1)
+~isAbberCorr_2|UChar|if set to 1, abberation correction applied SRDB=SSTD3015|% bits(GloPar1ADB_2,3,1)
+~rateQuality_2|UChar|rate quality SRDB=SSTD3016|% bits(GloPar1ADB_2,1,2)
+~isValidRate_2|UChar|if set to 1, rate information valid SRDB=SSTD3017|% bits(GloPar1ADB_2,0,1)
+attQualityIx_2|UChar|sum of single-star qualities of attitude stars SRDB=SST04017|1|*

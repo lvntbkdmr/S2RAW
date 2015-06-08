@@ -1,0 +1,5 @@
+Csiz|*|*
+#
+Ssiz|UChar|Component Precision (depth) in bits|1
+XRsiz|UChar|Component Horizontal separation of a sample|1
+YRsiz|UChar|Component Vertical separation of a sample|1

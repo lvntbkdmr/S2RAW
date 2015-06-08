@@ -1,0 +1,57 @@
+#!/bin/bash
+
+. "$1";shift
+
+do_demux=true
+do_xtarget=true
+do_decomp=true
+
+for pass in "$@" ; do
+
+	pass_name=`basename "$pass"`
+	pass_out="$output/$pass_name"
+
+	[ ! -d "$pass_out" ] && mkdir -p "$pass_out"
+
+	$do_demux && s2demux -out="$pass_out//DEMUX/" -meta ${isp_defines[@]} -xsad -xhdr=xp -dtS2A_ @ "$pass/"*
+
+	$do_xtarget && ls -1 "$pass_out/"*/DEMUX/*.MSI.*.txt | while read file; do
+
+		demux_dir=`dirname "$file"`
+		dt_id=`dirname "$demux_dir"`
+
+		pointing_file="$dt_id/"`basename "$dt_id"`".$pass_name"
+
+		s2pointing "$demux_dir"/*.SAD.*.bin "$VIEWDIR" \
+			"${isp_defines[@]}" -densify=0 -scene_margin=0 \
+			-tref=UTC -msf=TXT "$file" \
+			>"$pointing_file"
+
+		ls "$targets/"* | while read target_file; do
+			target=`basename "$target_file"`
+			target_out="$dt_id/EXTRACT.$target"
+			mkdir "$target_out"
+			s2xtarget "$target_file" "$pointing_file" -o "$target_out" -m 2 "$demux_dir"
+			ls "$target_out/"*.bin >/dev/null 2>&1 || rm -rf "$target_out"
+		done
+
+		rm "$pointing_file"
+
+	done
+
+	$do_decomp && for file in "$pass_out/"*/DEMUX/*.B??D??.*.bin; do
+		if [ "$HOME" == "/Users/olive" ]; then
+			lum_dir=`dirname "${file/\/DEMUX\///LUM/}"`
+			[ ! -d "$lum_dir" ] && mkdir "$lum_dir"
+			cd "$lum_dir"; ln -s ../DEMUX/`basename "$file"` . ; cd - >/dev/null
+		else
+			lum="${file#bin}lum"
+			lum="${lum/\/DEMUX\///LUM/}"
+			mkdir -p `dirname "$lum"`
+			echo ExtractionAlbum "$file" "$lum"
+			ExtractionAlbum "$file" "$lum" 1 1 -1 0 && rm "$file"
+		fi
+	done
+
+done
+

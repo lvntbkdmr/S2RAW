@@ -1,0 +1,15 @@
+DFEPAnnotation|DFEP ISP Annotation Record|*
+#
+dpc_prefix|Spare|DPC preprended bytes|%option("#isp_offset",0)
+acqt|@DFEPT|ISP Acquisition Time|*|*
+isp_len|UShort|ISP Length (bytes)|*|*|
+num_vcdu|UShort|Number of Transfer Frames containing current ISP|*
+num_missing_vcdu|UShort|Number of missing Transfer Frames containing current ISP|*
+crc_error_flag|UChar|CRC Error flag, identifying the detection of CRC error in the packet|*
+~vcid_flag|UChar|Set to 1 if VCID field contains VCID. 0 otherwise|% bits(bit_fields,15,1)
+~spare1|UChar|1 Spare bit (0)|% bits(bit_fields,14,1)
+~vcid|UChar|Virtual Channel Identifier for which the packet was multiplexed onto|% bits(bit_fields,8,6)
+~channel|UChar|Physical channel identifier|% bits(bit_fields,6,2)
+~spare2|UChar|6 Spare bits (0)|% bits(bit_fields,0,6)
+bit_fields|UShort|vcid_flag (1 bit) spare (1 bit) vcid (6 bits) channel (2) spare (6) |2
+spare3|Spare|Spare|1

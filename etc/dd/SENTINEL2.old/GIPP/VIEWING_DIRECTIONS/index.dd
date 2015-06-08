@@ -1,0 +1,5 @@
+VIEWING_DIRECTIONS|VIEWING_DIRECTIONS|*|Local
+#
+cqfd_header|@/CQFD_Header|*|*
+num_bands|aUShort|*|2
+BAND_VIEWDIR|@VIEWDIR|*|*|num_bands

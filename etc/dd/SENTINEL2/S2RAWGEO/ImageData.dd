@@ -1,0 +1,12 @@
+ImageData|Image Data File|% {+LUM}@SIZE %|LITTLE-ENDIAN
+#
+#filename is like aaaaaa.bbbbbbbb.ccccccc. ... .BxxDxx.<first_scene>_<last_scene>.TDI-<tdi_config>.lum
+~filename|String|*|% {}@filename
+~meta|String|*|% dots=strcount(filename,"."); words(filename,".",dots-3,dots-1)
+~detector_id|UShort|*|% meta[4,5]
+~band_num|UShort|*|% meta[1,2]
+~band_id|String|*|% choose(band_num,"N/A","B1","B2","B3","B4","B5","B6","B7","B8","B8a","B9","B10","B11","B12")
+~tdi_config|String|*|% words(meta,".",2)[4]
+~first_scene|DateTime|2000|% datenum(meta[7,7+14],2000)
+~last_scene|DateTime|2000|% datenum(meta[7+14+2,7+14+2+14],2000)
+LUM|@/LUM|*|*

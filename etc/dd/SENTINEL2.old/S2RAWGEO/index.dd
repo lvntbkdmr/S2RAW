@@ -1,0 +1,3 @@
+Auto-Descriptive|s2rawgeo|*|Local
+#
+~dictionary|String|*|% option("#image_folder","")==""?"Geo":"GeoImage"

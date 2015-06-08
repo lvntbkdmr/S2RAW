@@ -1,0 +1,77 @@
+// use with imager -O process?target,target_geo_indices
+
+	targets=option("targets",null);
+	do_target=!isnullstr(targets);
+
+	target_idx=do_target?loop(strcount(targets,"|")):1;
+
+	target=do_target?words(targets,"|",target_idx+1):"";
+	target_lon=words(target,";",1)+0;
+	target_lat=words(target,";",2)+0;
+
+	target_ext_default=option("target_ext",5);
+	target_ext=words(target,";",3);
+	target_ext=isnullstr(target_ext)?target_ext_default:target_ext;
+
+	ext_uncertainty=26*sqrt(2)/(tpdf+1); //not sure we need the square root of 2 there
+
+	lon=raster("BAND.band_id=B2.lon","",1,1,0,0) @cyclic(-180,180);
+	lat=raster("BAND.band_id=B2.lat","");
+
+	l=lines(lon@lines);
+	c=columns(lon@columns);
+
+        pixel_target_distance_rad=vector(12) [
+           acos(
+              sin(pi/180*target_lat)*sin(pi/180*lat[0,0,$1])
+             +(cos(pi/180*target_lat)*cos(pi/180*lat[0,0,$1])*cos(pi/180*(lon[0,0,$1]-target_lon)))
+           )
+	];
+
+	pixel_target_distance_km=vector(12) [pixel_target_distance_rad[$1]*(180/pi*1.852*60)];
+
+	target_match=vector(12) [pixel_target_distance_rad[$1]<=(pi/180/1.852/60)*(target_ext+ext_uncertainty)];
+	target_stats=vector(12,2) [stat($2?c:l,target_match[$1])];
+
+
+	target_det_geo_indices=vector(12) [
+		       target_stats[$1,0]MIN
+		<<","<<target_stats[$1,0]MAX
+		<<","<<target_stats[$1,1]MIN
+		<<","<<target_stats[$1,1]MAX
+	];
+
+	target_geo_indices=
+		       target_det_geo_indices[0]
+		<<";"<<target_det_geo_indices[1]
+		<<";"<<target_det_geo_indices[2]
+		<<";"<<target_det_geo_indices[3]
+		<<";"<<target_det_geo_indices[4]
+		<<";"<<target_det_geo_indices[5]
+		<<";"<<target_det_geo_indices[6]
+		<<";"<<target_det_geo_indices[7]
+		<<";"<<target_det_geo_indices[8]
+		<<";"<<target_det_geo_indices[9]
+		<<";"<<target_det_geo_indices[10]
+		<<";"<<target_det_geo_indices[11]
+	;
+
+	target_geo_count=
+		 target_stats[ 1,0]SAMPLES
+		+target_stats[ 2,0]SAMPLES
+		+target_stats[ 3,0]SAMPLES
+		+target_stats[ 4,0]SAMPLES
+		+target_stats[ 5,0]SAMPLES
+		+target_stats[ 6,0]SAMPLES
+		+target_stats[ 7,0]SAMPLES
+		+target_stats[ 8,0]SAMPLES
+		+target_stats[ 9,0]SAMPLES
+		+target_stats[10,0]SAMPLES
+		+target_stats[11,0]SAMPLES
+	;
+
+	process=do_target?target_geo_count>0:1;
+
+	do_target?target_geo_indices=="":1
+
+

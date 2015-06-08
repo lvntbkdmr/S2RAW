@@ -1,0 +1,4 @@
+Auto-Descriptive|General auto descriptor|*
+#
+# default is isp_buffer
+~dictionary|String||% "ISP/buffer"

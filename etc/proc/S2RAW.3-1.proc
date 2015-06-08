@@ -1,0 +1,575 @@
+// Description:
+//	Input parameters:
+//	- Time queries supported via -sensing_start, -sensing_stop
+//	- Optional target formatted as a semincolon separated string of target name, longitude, latitude, and optional target extension in kilometers
+
+//	Output:
+//	- Browse image	<product-name>.jpg
+//
+//	Return Status:
+//	- (0)  on success
+//	- (-1) (255) on error
+//
+//	Processing performed:
+//	Generates a browse image 
+//
+//	
+// 	name of processor:
+
+
+	proc_name=words(proc,".",0);
+	proc_version=swap(words(proc,".",1),"-",".");
+	proc_time=datestr(datenum(null))ISO;
+
+
+// Input Parameters
+
+	// output filename
+	outname=option("outname",filename);
+
+	// time interval (defaulting to the complete one)
+	sensing_start_param=option("sensing_start","");
+	sensing_stop_param=option("sensing_stop","");
+
+	// target parameters
+	target=option("target",null);
+	dont_target=isnullstr(target);
+	target_name=words(target,";",0);
+	target_lon=words(target,";",1)+0;
+	target_lat=words(target,";",2)+0;
+
+	target_ext_default=option("target_ext",5);
+	target_ext=words(target,";",3);
+	target_ext=isnullstr(target_ext)?target_ext_default:target_ext+0;
+	target_ext_m=target_ext*1000;
+
+	target_email=words(target,";",4);
+	target_long_name=words(target,";",5);
+
+	target_min_extents=option("target_min_extents",nan);
+
+	// coregistration accuracy (in numer of 10m lines)
+	coreg_prec=option("coreg_prec",32);
+
+	datatake=option("datatake",words(outname,".",0));
+	sat_unit=option("sat_unit",datatake[2,2]);
+
+	orbit=option("orbit",strfind(outname,".ORB-")>=0?words(outname[strfind(outname,".ORB-")+5],".",0)+0:-1);
+
+	msi_mode=option("msi_mode",strfind(outname,".INS-")>=0?words(outname[strfind(outname,".INS-")+1],".",0):"INS-ERR");
+
+	nuc_table_id=option("nuctid",strfind(outname,".NUC-")>=0?words(outname[strfind(outname,".NUC-")+5],".",0)+0:-1);
+	nuc_applied=isnumber(nuc_table_id);
+
+	downlink=option("downlink",strfind(outname,".ACQ-")>=0?words(outname[strfind(outname,".ACQ-")+5],".",0):"NA");
+
+	// radiometric equalization
+	eq=option("eq","cubic");
+	noeq=(eq=="")||(eq=="none");
+	eq_cubic=(eq=="cubic");
+
+	// rainbow
+	norainbow=!option("rainbow",0);
+
+	// radiance or reflectance (default)
+	rad=option("rad",0);
+
+
+// define constants
+	// vernal equinox on 2000-03-20 at 7:25 UTC
+
+	earth_rotation=2*pi/(24*3600); // in rad/s
+
+	vernal_equinox=datenum("20-MAR-2000 07:25:00",2000);
+	tropical_year=365.242190;
+	ecliptic_angle=23.5;
+
+	earth_radius=6363885;
+
+// Band definitions
+
+	band_num=vector() [1,2,3];
+	tdi_config_default=vector() ["NO_TDI","APPLIED","APPLIED"];
+	num_bands=band_num@size(1);
+
+	image_idx=vector(num_bands,12) [max({.IMAGE_FOLDER.IMAGE_DATA}@lookup($2*12+band_num[$1],"(detector_id-1)*12+band_num"),0)];
+
+	// Input image dimensions
+	image_dim=vector(num_bands,12,2) [choose($3,0,
+		.IMAGE_FOLDER.IMAGE_DATA[image_idx[$1,$2]]LUM.num_lines,
+		.IMAGE_FOLDER.IMAGE_DATA[image_idx[$1,$2]]LUM.num_pixels)
+	];
+
+	// TDI configuration
+	tdi_config=vector(num_bands)
+		[BAND["band_num="<<band_num[$1]]tdi_config]
+		[$0=="NONE"?"NO_TDI":$0] [strlookup($0,"NO_TDI","APPLIED","LINE_A","LINE_B")<0?tdi_config_default[$1]:$0]
+	;
+
+
+	num_det_pixels_fr={BAND.band_id=B2.num_det_pixels_fr}; // 2548 for 10m bands
+	num_det_pixels={BAND.band_id=B2.num_det_pixels}; // 324 for the quick look out of decompression
+	num_det_pixels=num_det_pixels?num_det_pixels:324;
+
+	sampling=const(2^ceil(log({BAND.band_id=B2.num_det_pixels_fr}/{BAND.band_id=B2.num_det_pixels})/log(2))); // 8
+
+	// the number of void pixels at the beginning and end of a line (this happens both for quicklook and for full-resolution)
+        void_col_offset=((num_det_pixels-floor(num_det_pixels_fr/sampling))/2);
+
+        // accordingly adjust num_det_pixels to equal the number of complete groups of 'sampling' full resolution pixels
+        num_det_pixels=num_det_pixels-2*void_col_offset;
+        num_det_pixels_fr=num_det_pixels*sampling;
+
+// GIPP VIEWDIR processing to derive image pixel association to detector image space 
+	// moved externally (e.g. PIXSELECT.proc, no_overlap, etc)
+
+// coarse registration offsets
+	// moved externally (e.g. coreg_coarse, coreg_fine, etc) 
+
+	bands_coreg_loffset=vector(num_bands,12) [coreg_loffset[band_num[$1],$2]];
+	corr_coreg_loffset=-min(0,bands_coreg_loffset);
+
+	data_loffset=vector(num_bands,12) [image_dim[$1,$2,0]==0?nan:(
+		(bands_coreg_loffset[$1,$2]+corr_coreg_loffset)/sampling
+		+ceil(LINE_TIME@maxlookup(BAND["band_num="<<band_num[$1]]first_scene[$2])/tpdf-num_margin_scenes)*16*144/sampling
+	)];
+
+	canvas_loffset=min(data_loffset);
+
+
+// input data
+
+	pixel=vector(num_bands,12) [
+		raster(
+			"BAND.band_num="<<band_num[$1]<<".image_data."<<$2,"",
+			// apply line coregistration offset,detector/image offset and reverse reading for odd detectors
+			1,($2%2?-1:1),
+			data_loffset[$1,$2],
+			(det_pix1_canvas_fr[$2]-det_pix_range_fr[$2,0]+($2%2?num_det_pixels_fr-1:0))/sampling-($2%2?-1:1)*void_col_offset
+		) @buffer(ceil(coreg_prec/sampling))
+	];
+
+	data_lmax=vector(num_bands,12) [pixel[$1,$2]@lines+data_loffset[$1,$2]];
+	canvas_lmax=max(data_lmax)-1;
+
+	lines_per_tp=16*144/sampling/tpdf;
+	pixels_per_tp=({BAND.band_id=B2.num_det_pixels_fr}-1)/(num_tp_cols-1);
+
+	margin_lines=round(lines_per_tp*{tpdf}*({num_margin_scenes}+0));
+	sampling_shift=0.5*(1-1/sampling);
+
+	tp_line_offset=corr_coreg_loffset/sampling-margin_lines-sampling_shift;
+	even_odd_shift=(coreg_loffset[1,1]-coreg_loffset[1,0])/sampling;
+
+	pos=vector(num_bands,12,2) [
+		raster("BAND.band_num="<<band_num[$1]<<".lon",""<<$2,
+		   lines_per_tp, pixels_per_tp,tp_line_offset+coreg_loffset[band_num[$1],$2]/sampling, 0
+		) @buffer(ceil(coreg_prec/sampling)) @scale(180/pi) @cyclic(-pi,pi),
+		raster("BAND.band_num="<<band_num[$1]<<".lat",""<<$2,
+		   lines_per_tp, pixels_per_tp,tp_line_offset+coreg_loffset[band_num[$1],$2]/sampling, 0
+		) @buffer(ceil(coreg_prec/sampling)) @scale(180/pi)
+	];
+
+	sun_el=vector(12) [
+		raster("BAND.band_id=B2.sun_el",""<<$1,
+		   lines_per_tp, pixels_per_tp,tp_line_offset+coreg_loffset[1,$1]/sampling, 0
+		) @scale(180/pi)
+	];
+
+
+// line selector for time and/or geoloc criteria
+
+	// get the corresponding start/stop line indices
+	sensing_start=sensing_start_param==""?nan:datenum(sensing_start_param,2000);
+	sensing_stop=sensing_stop_param==""?nan:datenum(sensing_stop_param,2000);
+
+	time_loffset=LINE_TIME@maxlookup(sensing_start,"");
+	time_loffset=ifdef(sensing_start,tp_line_offset+lines_per_tp*(time_loffset-(LINE_TIME[time_loffset]-sensing_start)/(3.6/86400/tpdf)));
+
+	time_lmax=LINE_TIME@minlookup(sensing_stop,"");
+	time_lmax=ifdef(sensing_stop,time_lmax<0?0:(tp_line_offset+lines_per_tp*(time_lmax-(LINE_TIME[time_lmax]-sensing_stop)/(3.6/86400/tpdf))));
+
+	// get line and column interval for geoloc criteria
+
+	target_geo_indices=vector(12,2,2) [0+words(words(option("target_geo_indices",""),";",$1),",",$2*2+$3)];
+
+	target_det_lines=vector(12,2) [target_geo_indices[$1,0,$2]*lines_per_tp+(tp_line_offset+coreg_loffset[1,$1]/sampling)];
+	target_loffset=floor(min(target_det_lines));
+	target_lmax=ceil(max(target_det_lines));
+
+	target_det_cols=vector(12,2) [(target_geo_indices[$1,1,$2]*pixels_per_tp-det_pix_range_fr[$1,0]+det_pix1_canvas_fr[$1])/sampling];
+	target_coffset=floor(min(target_det_cols));
+	target_cmax=ceil(max(target_det_cols));
+
+	param_loffset=max(dont_target?nan:target_loffset,time_loffset);
+	param_lmax=min(dont_target?nan:target_lmax,time_lmax);
+
+	l=lines(const(ifndef(param_loffset,canvas_loffset)),const(ifndef(param_lmax,canvas_lmax)));
+
+	// define number of canvas image columns
+	// and set canvas column numbers canvas_pix and canvas_pix_fr respectively in sampled and fr pixel units
+	canvas_coffset=ifndef(target_coffset,0);
+	canvas_cmax=ifndef(target_cmax,floor(canvas_numpix_fr/sampling)-1);
+
+	canvas_pix=columns(canvas_coffset,canvas_cmax);
+	canvas_pix_fr=floor((canvas_pix+.5)*sampling);
+
+	// the detector to which the fr pixel belongs
+	det=detector_fr[canvas_pix_fr];
+	det_odd=det%2;
+
+	// the detector pixel number in sampled space
+	det_pix=round(det_pix_fr[canvas_pix_fr]/sampling-0.5);
+	det_pix_reverse=num_det_pixels-det_pix-1;
+
+
+// line properties
+
+	line_sensing_time=raster("LINE_TIME","",lines_per_tp,1,tp_line_offset,0);
+	line_sensing_time=keep(line_sensing_time[l,0]ABS,canvas_pix@index>0);
+
+	line_sensing_time_str=datestr(line_sensing_time,2000)ISO;
+	sensing_start_str=keep(line_sensing_time_str,(l!=l@first)||(canvas_pix!=canvas_pix@first));
+
+	// this will be true each time a new canvas line is started
+	new_det_line=(canvas_pix@index==0)||(canvas_pix_fr-sampling<det_pix1_canvas_fr[det]);
+
+
+// geolocation processing
+
+	tp_col=det_pix_fr[canvas_pix_fr];
+	tp_col_max=num_det_pixels_fr-1;
+
+	lon=vector(12) [pos[0,$1,0][l,tp_col]ABS]; lon=lon[det]; lon_deg=lon*180/pi;
+	lat=vector(12) [pos[0,$1,1][l,tp_col]ABS]; lat=lat[det]; lat_deg=lat*180/pi;
+	sun_el=vector(12) [sun_el[$1][l,tp_col]ABS]; sun_el=sun_el[det]; sun_el_deg=sun_el*180/pi;
+
+        pixel_target_distance_rad=
+           acos(
+              sin(pi/180*target_lat)*sin(lat)
+             +(cos(pi/180*target_lat)*cos(lat)*cos(lon-pi/180*target_lon))
+           );
+
+        pixel_target_distance_km=
+           pixel_target_distance_rad
+           *180/pi*1.852*60
+           ;
+
+	target_match=pixel_target_distance_rad<=(pi/180/1.852/60)*target_ext;
+
+// fine band registration
+
+	// test code (not used)
+	det_test=6;
+
+	Pdelta13=arclen(pos[1,det_test,0][l,tp_col]ABS,pos[1,det_test,1][l,tp_col]ABS,lon,lat);
+	Pdelta13_m=Pdelta13*180/pi*1852*60;
+
+	Pdelta12=arclen(pos[1,det_test,0][l,tp_col_max]ABS,pos[1,det_test,1][l,tp_col_max]ABS,pos[1,det_test,0][l,tp_col]ABS,pos[1,det_test,1][l,tp_col]ABS);
+	Pdelta12_m=Pdelta12*180/pi*1852*60;
+
+	Pdelta33=arclen(pos[1,det_test,0][l,tp_col]ABS,pos[1,det_test,1][l,tp_col]ABS,pos[1,det_test,0][l-1,tp_col]ABS,pos[1,det_test,1][l-1,tp_col]ABS);
+	Pdelta33_m=Pdelta33*180/pi*1852*60;
+
+	Pbearing13=arcbearing(pos[1,det_test,0][l,tp_col]ABS,pos[1,det_test,1][l,tp_col]ABS,lon,lat);
+	Pbearing13_deg=Pbearing13*180/pi;
+
+	Pbearing12=arcbearing(pos[1,det_test,0][l,tp_col]ABS,pos[1,det_test,1][l,tp_col]ABS,pos[1,det_test,0][l,tp_col_max]ABS,pos[1,det_test,1][l,tp_col_max]ABS);
+	Pbearing12_deg=Pbearing12*180/pi;
+
+	Pdxt=asin(sin(Pdelta13)*sin(Pbearing13-Pbearing12));Pdxt_m=Pdxt*180/pi*1852*60;
+	Pdat=((Pbearing13*Pbearing12)>0?1:-1)*acos(cos(Pdelta13)/cos(Pdxt)); Pdat_m=Pdat*180/pi*1852*60;
+
+	Pdat_i=Pdat/Pdelta12*(num_det_pixels_fr-1-tp_col);
+	Pdxt_i=Pdxt/Pdelta33;
+
+	Plon1=pos[1,det_test,0][l+Pdxt_i,tp_col+Pdat_i]ABS;
+	Plat1=pos[1,det_test,1][l+Pdxt_i,tp_col+Pdat_i]ABS;
+
+	Pdist=arclen(lon,lat,Plon1,Plat1)*180/pi*1852*60;
+
+
+	// begin fine band coregistration processing
+
+	dist_b2=vector(num_bands-1,12,2) [arclen(
+		pos[$1+1,$2,0][l,$3?tp_col_max:0]ABS,pos[$1+1,$2,1][l,$3?tp_col_max:0]ABS,
+		pos[0,$2,0][l,$3?tp_col_max:0]ABS,pos[0,$2,1][l,$3?tp_col_max:0]ABS
+	)];
+
+	// bearing between left/right most pixel ($3) of the detector swath ($2) of every band ($1+1) and the same pixel of band B2
+	bearing_b2=vector(num_bands-1,12,2) [arcbearing(
+		pos[$1+1,$2,0][l,$3?tp_col_max:0]ABS,pos[$1+1,$2,1][l,$3?tp_col_max:0]ABS,
+		pos[0,$2,0][l,$3?tp_col_max:0]ABS,pos[0,$2,1][l,$3?tp_col_max:0]ABS
+	)];
+
+	// bearing between the left and right most pixels of the detector swath ($2) for every band band ($1+1)
+	bearing_xt=vector(num_bands-1,12) [arcbearing(
+		pos[$1+1,$2,0][l,0]ABS,pos[$1+1,$2,1][l,0]ABS,
+		pos[$1+1,$2,0][l,tp_col_max]ABS,pos[$1+1,$2,1][l,tp_col_max]ABS
+	)];
+
+	pixel_line_size=vector(num_bands-1,12) [
+		arclen(
+			pos[$1+1,$2,0][l,tp_col_max/2]ABS,pos[$1+1,$2,1][l,tp_col_max/2]ABS,
+			pos[$1+1,$2,0][l-1,tp_col_max/2]ABS,pos[$1+1,$2,1][l-1,tp_col_max/2]ABS
+		)
+	];
+
+	// coregistration distance (bands x detectors x l/r of swath)
+	coreg_coarse_line=vector(num_bands-1,12,2) [
+		asin(sin(dist_b2[$1,$2,$3])*sin(bearing_b2[$1,$2,$3]-bearing_xt[$1,$2]))/pixel_line_size[$1,$2]
+	];
+
+	dist_b2=vector(num_bands-1,12,2) [arclen(
+		pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,$3],$3?tp_col_max:0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,$3],$3?tp_col_max:0]ABS,
+		pos[0,$2,0][l,$3?tp_col_max:0]ABS,pos[0,$2,1][l,$3?tp_col_max:0]ABS
+	)];
+	dist_b2_m=vector(num_bands-1,12,2) [dist_b2[$1,$2,$3]*180/pi*1852*60];
+
+	bearing_b2=vector(num_bands-1,12,2) [arcbearing(
+		pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,$3],$3?tp_col_max:0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,$3],$3?tp_col_max:0]ABS,
+		pos[0,$2,0][l,$3?tp_col_max:0]ABS,pos[0,$2,1][l,$3?tp_col_max:0]ABS
+	)];
+	bearing_b2_deg=vector(num_bands-1,12,2) [bearing_b2[$1,$2,$3]*180/pi];
+
+	bearing_xt=vector(num_bands-1,12) [keep(arcbearing(
+		pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,0],0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,0],0]ABS,
+		pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,1],tp_col_max]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,1],tp_col_max]ABS
+	))];
+	bearing_xt_deg=vector(num_bands-1,12) [bearing_xt[$1,$2]*180/pi];
+
+	pixel_size=vector(num_bands-1,12,2) [
+		keep(arclen(
+			pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,0],0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,0],0]ABS,
+			pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,0]-1,0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,0]-1,0]ABS
+		)),
+		keep(arclen(
+			pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,1],tp_col_max]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,1],tp_col_max]ABS,
+			pos[$1+1,$2,0][l+coreg_coarse_line[$1,$2,0],0]ABS,pos[$1+1,$2,1][l+coreg_coarse_line[$1,$2,0],0]ABS
+		))/(num_det_pixels_fr-1)
+	];
+
+	pixel_size_m=vector(num_bands-1,12,2) [pixel_size[$1,$2,$3]*180/pi*1852*60];
+
+	// coregistration distance (bands x detectors x l/r of swath)
+	coreg_shift_at=vector(num_bands-1,12,2) [
+		asin(sin(dist_b2[$1,$2,$3])*sin(bearing_b2[$1,$2,$3]-bearing_xt[$1,$2]))
+	];
+
+
+	coreg_shift_xt=vector(num_bands-1,12,2) [
+		((bearing_xt[$1,$2]-bearing_b2[$1,$2,$3]-pi/2)%(2*pi)>=pi?1:-1)*acos(cos(dist_b2[$1,$2,$3])/cos(coreg_shift_at[$1,$2,$3]))
+	];
+
+	coreg_shift_m=vector(num_bands-1,12,2,2) [coreg_shift_at[$1,$2,$3]*180/pi*1852*60,coreg_shift_xt[$1,$2,$3]*180/pi*1852*60];
+
+	coreg_delta_line=vector(num_bands-1,12) [
+		 keep((coreg_coarse_line[$1,$2,1]+coreg_shift_at[$1,$2,1]/pixel_size[$1,$2,0])/tp_col_max,!new_det_line||($2!=det))*tp_col
+		+keep((coreg_coarse_line[$1,$2,0]+coreg_shift_at[$1,$2,0]/pixel_size[$1,$2,0])/tp_col_max,!new_det_line||($2!=det))*(tp_col_max-tp_col)
+	];
+	coreg_delta_col=vector(num_bands-1,12) [
+		 keep(coreg_shift_xt[$1,$2,1]/pixel_size[$1,$2,1]/tp_col_max,!new_det_line||($2!=det))*tp_col
+		+keep(coreg_shift_xt[$1,$2,0]/pixel_size[$1,$2,1]/tp_col_max,!new_det_line||($2!=det))*(tp_col_max-tp_col)
+	];
+
+	coreg_pos=vector(num_bands-1,12,2) [pos[$1+1,$2,$3][l+coreg_delta_line[$1,$2],tp_col+coreg_delta_col[$1,$2]]ABS];
+	coreg_indices=vector(num_bands-1,2) [l+coreg_delta_line[$1,det],tp_col+coreg_delta_col[$1,det]];
+	coreg_pos=vector(num_bands-1,2) [coreg_pos[$1,det,$2]];
+	coreg_dist=vector(num_bands-1) [arclen(lon,lat,coreg_pos[$1,0],coreg_pos[$1,1])*180/pi*1852*60];
+
+
+// detector pixel selection
+
+	pix_coreg=vector(num_bands,12) [pixel[$1,$2][$1?coreg_delta_line[$1-1,$2]:0,$1?coreg_delta_col[$1-1,$2]/sampling:0]NEAREST];
+	pix_coreg=vector(num_bands) [keep(pix_coreg[$1,det])];
+
+	// the relative line number within the scene
+	scene_line=vector(num_bands) [round(l-data_loffset[$1,det]+($1?coreg_delta_line[$1-1,det]:0))%(16*144/sampling)];
+
+
+// IAS06-03 Inverse of on board equalization
+
+	coeff_ob=vector(num_bands,4) [raster(
+		"EQOB.BAND.band_num="<<band_num[$1]<<".COEFF.tdi_config="<<tdi_config[$1]<<"."<<choose($2,"","COEFF_A1","COEFF_A2","COEFF_D","COEFF_ZS"),
+		""
+	) @buffer];
+
+	coeff_og=vector(num_bands,4) [raster(
+		"EQOG.BAND.band_num="<<band_num[$1]<<".COEFF.tdi_config="<<tdi_config[$1]<<"."<<choose($2,"","COEFF_A","COEFF_B","COEFF_C","COEFF_D"),
+		""
+	) @buffer];
+
+
+	// try using -FEQOB pathname::memory
+
+	det_pix_coreg=vector(num_bands) [$1?round(det_pix+coreg_delta_col[$1-1,det]+void_col_offset):(det_pix+void_col_offset)];
+
+	A1=vector(num_bands) [keep(coeff_ob[$1,0][det,det_pix_coreg[$1]]ABS)];
+	A2=vector(num_bands) [keep(coeff_ob[$1,1][det,det_pix_coreg[$1]]ABS)];
+	D =vector(num_bands) [keep(coeff_ob[$1,2][det,det_pix_coreg[$1]]ABS)];
+	Zs=vector(num_bands) [keep(coeff_ob[$1,3][det,det_pix_coreg[$1]]ABS)];
+
+	epsilon=vector(num_bands) [ EQOB.BAND["band_num="<<band_num[$1]]COEFF["tdi_config="<<tdi_config[$1]]epsilon ];
+	Z=vector(num_bands) [(pix_coreg[$1]<=A1[$1]*Zs[$1])?(pix_coreg[$1]/A1[$1]):((pix_coreg[$1]-(A1[$1]-A2[$1])*Zs[$1])/A2[$1])];
+	X=vector(num_bands) [(pix_coreg[$1]+epsilon[$1])>=4095?4095:(Z[$1]+D[$1])];
+
+//IAS06-04: DARK SIGNAL CORRECTION
+
+	A=vector(num_bands) [coeff_og[$1,0][det,det_pix_coreg[$1]]ABS];
+	B=vector(num_bands) [coeff_og[$1,1][det,det_pix_coreg[$1]]ABS];
+	C=vector(num_bands) [coeff_og[$1,2][det,det_pix_coreg[$1]]ABS];
+	DNU=vector(num_bands) [coeff_og[$1,3][det,det_pix_coreg[$1],scene_line[$1]%6]ABS];
+
+	Inter_rad=vector(num_bands) [keep(X[$1]-DNU[$1])];
+
+	rad_linear=vector(num_bands) [(Inter_rad[$1]<=Zs[$1]?(Inter_rad[$1]*A1[$1]):(Zs[$1]*A1[$1]+A2[$1]*(Inter_rad[$1]-Zs[$1])))/4095];
+	rad_cubic=vector(num_bands) [(Inter_rad[$1]*(A[$1]*Inter_rad[$1]^2+B[$1]*Inter_rad[$1]+C[$1]))/4095];
+
+	band_out=vector(num_bands) [((sampling>1||noeq)?pix_coreg[$1]/4095:(eq_cubic?rad_cubic[$1]:rad_linear[$1]))/(rad?1:sin(sun_el))];
+
+	// composite RGB with R=b2, G=b3, B=b4
+
+	red=isnan(pix_coreg[2])?0:band_out[2];
+	green=isnan(pix_coreg[1])?0:band_out[1];
+	blue=isnan(pix_coreg[0])?0:band_out[0];
+	nodata=norainbow?hasnan(pix_coreg):isnan(pix_coreg);
+
+// compose R/G/B channels
+
+	rgb=color(min(red,1),min(green,1),min(blue,1),!nodata);
+
+	// saturate
+	// rgb=rgb@S((rgb S)*1.4);
+
+
+// target coverage info
+
+	// calculate left and right swath edge distance in case of target
+	
+	// across track bearing (between the left and right most pixels of the reference band B2)
+	bearing_xtrack=vector(12) [keep(
+		arcbearing(pos[0,$1,0][l,0]ABS,pos[0,$1,1][l,0]ABS, pos[0,$1,0][l,tp_col_max]ABS,pos[0,$1,1][l,tp_col_max]ABS),
+		!new_det_line||($1!=det)
+	)];
+	bearing_xtrack=bearing_xtrack[det]; bearing_xtrack_deg=bearing_xtrack*180/pi;
+	bearing_target=arcbearing(target_lon*pi/180,target_lat*pi/180,lon,lat);bearing_target_deg=bearing_target*180/pi;
+
+	// along and across track distance 
+	dist_at=asin(sin(pixel_target_distance_rad)*sin(bearing_target-bearing_xtrack));dist_at_km=dist_at*180/pi*1.852*60;
+	dist_xt=((bearing_xtrack-bearing_target-pi/2)%(2*pi)>=pi?1:-1)*acos(cos(pixel_target_distance_rad)/cos(dist_at));dist_xt_km=dist_xt*180/pi*1.852*60;
+
+	edge_xt=((canvas_pix==canvas_cmax)||(canvas_pix==0))&&target_match;
+//	edge_xt=((canvas_pix==15500)||(canvas_pix==0))&&target_match;
+	edge_dist_xt_km=180/pi*1.852*60*getmin((canvas_pix?1:-1)*dist_xt,edge_xt);
+
+	edge_at=((l==corr_coreg_loffset)||(l==canvas_lmax-corr_coreg_loffset))&&target_match;
+//	edge_at=((l==corr_coreg_loffset)||(l==19000))&&target_match;
+	edge_dist_at_km=180/pi*1.852*60*getmin((l>corr_coreg_loffset?1:-1)*dist_at,edge_at);
+
+	// check if coverage sufficient
+	target_coverage_ok=isnan(target_min_extents)?1:(
+		(isnan(edge_dist_at_km)?1:(edge_dist_at_km>=target_min_extents))
+		&&(isnan(edge_dist_xt_km)?1:(edge_dist_xt_km>=target_min_extents))
+	);
+
+	// stat to get the number of pixels in target
+	target_pixels=stat(1,target_match);
+
+
+	// time of target overfly
+	// target_dist=keepmin(abs(dist_at),!target_match);
+	// target_time=get(datestr(line_sensing_time+3.6/(144*16)-dist_at_km/0.01/86400)ISO,abs(dist_at)==target_dist);
+	target_dist=keepmin(pixel_target_distance_rad,!target_match);
+	target_time=get(line_sensing_time_str,pixel_target_distance_rad==target_dist);
+
+
+// Output
+
+	// aggregate valid pixels in browse raster, let invalid be cropped out
+	invalid=0;
+
+	gcp_density_lines=lines_per_tp/(sampling>1?1:4);
+	gcp_density_cols=pixels_per_tp/sampling/(sampling>1?1:4);
+
+//	rgb=((canvas_pix==15500)||(abs(dist_at_km)<10/1000)||(l==19000))?color("red"):rgb;
+	good_pixel=(dont_target||target_match)&&!invalid;
+	browse=rastermap(rgb,good_pixel) @geo(gcp_density_lines,gcp_density_cols,lon_deg,lat_deg);
+
+	canvas_crop_stat=stat(canvas_pix,good_pixel);
+
+	bp=dont_target?browse @name(outname):sync(canvas_crop_stat, browse @name(outname)@autocrop);
+
+	warp_areas=vector(12) [floor((det_pix1_canvas_fr[$1]+sampling/2-0.5)/sampling)-(sampling>1?canvas_pix@first:canvas_crop_stat MIN)] ;
+	warp_areas=vector(12) [(warp_areas[$1]<0)&&(warp_areas[min($1+1,11)]<=0)?nan:max(warp_areas[$1],0)] ;
+
+	warp_file=asciilog()
+	   header
+	   ["areas=:"
+	      <<ifdef(warp_areas[1],warp_areas[1]<<":")
+	      <<ifdef(warp_areas[2],warp_areas[2]<<":")
+	      <<ifdef(warp_areas[3],warp_areas[3]<<":")
+	      <<ifdef(warp_areas[4],warp_areas[4]<<":")
+	      <<ifdef(warp_areas[5],warp_areas[5]<<":")
+	      <<ifdef(warp_areas[6],warp_areas[6]<<":")
+	      <<ifdef(warp_areas[7],warp_areas[7]<<":")
+	      <<ifdef(warp_areas[8],warp_areas[8]<<":")
+	      <<ifdef(warp_areas[9],warp_areas[9]<<":")
+	      <<ifdef(warp_areas[10],warp_areas[10]<<":")
+	      <<ifdef(warp_areas[11],warp_areas[11])
+	   ]
+	;
+
+	// actual start/stop times of the lines extracted for reference in metadata
+	meta_file=asciilog()
+	   header
+	   footer
+	   ['<image name="'<<outname<<'">']endl
+	   ['\t<sensing_data mission="SENTINEL-2" sensor="MSI">']endl
+	   ['\t\t<datastrip satellite_unit="'<<sat_unit<<'">']endl
+	   ['\t\t\t<datatake id="'<<datatake<<'">']endl
+	   ['\t\t\t\t<orbit>'<<orbit<<'</orbit>']endl
+	   ['\t\t\t\t<start_time unit="UTC">'<<datestr(datenum(datatake[4]))ISO[0,18]<<'</start_time>']endl
+	   ['\t\t\t\t<msi_mode nuc_id="'<<nuc_table_id<<'">'<<msi_mode<<'</msi_mode>']endl
+	   ['\t\t\t</datatake>']endl
+	   ['\t\t\t<downlink>'<<downlink<<'</downlink>']endl
+	   ['\t\t\t<first_scene unit="UTC">'<<datestr(LINE_TIME[tpdf*num_margin_scenes],2000)ISO<<'</first_scene>']endl
+	   ['\t\t\t<last_scene unit="UTC">'<<datestr(LINE_TIME[tpdf*(num_margin_scenes+num_scenes)],2000)ISO<<'</last_scene>']endl
+	   ['\t\t</datastrip>']endl
+	   ['\t\t<sensing_segment>']endl
+	   ['\t\t\t<sensing_start unit="UTC">'<<sensing_start_str<<'</sensing_start>']endl
+	   ['\t\t\t<sensing_stop unit="UTC">'<<line_sensing_time_str<<'</sensing_stop>']endl
+	   ['\t\t\t<num_lines>'<<l@dim<<'</num_lines>']endl
+	   ['\t\t</sensing_segment>']endl
+	   ['\t</sensing_data>']endl
+	   ['\t<processing_data>']endl
+	   ['\t\t<image_processor name="'<<proc_name<<'" version="'<<proc_version<<'">']endl
+	   ['\t\t\t<processing_time>'<<proc_time<<'</processing_time>']endl
+	   ['\t\t\t<processing_parameters>']endl
+	   ['\t\t\t\t<sensing_start'<<(sensing_start_param==""?'/>':(' unit="UTC">'<<sensing_start_param<<'</sensing_start>'))]endl
+	   ['\t\t\t\t<sensing_stop'<<(sensing_stop_param==""?'/>':(' unit="UTC">'<<sensing_stop_param<<'</sensing_stop>'))]endl
+	   ['\t\t\t\t<target/>',dont_target]endl
+	   ['\t\t\t\t<target name="'<<target_name<<'">',!dont_target]endl
+	   ['\t\t\t\t\t<longitude unit="deg">'<<target_lon<<'</longitude>',!dont_target]endl
+	   ['\t\t\t\t\t<latitude unit="deg">'<<target_lat<<'</latitude>',!dont_target]endl
+	   ['\t\t\t\t\t<extents unit="km">'<<target_ext<<'</extents>',!dont_target]endl
+	   ['\t\t\t\t</target>',!dont_target]endl
+	   ['\t\t\t\t<det_overlap>'<<(det_overlap?'FULL':'REMOVE')<<'</det_overlap>']endl
+	   ['\t\t\t\t<viewing_directions>'<<words(VIEWDIR.BAND_VIEWDIR@FILENAME,".",0)<<'</viewing_directions>']endl
+	   ['\t\t\t\t<equalization_onground>'<<words(EQOG.BAND@FILENAME,".",0)<<'</equalization_onground>']endl
+	   ['\t\t\t\t<equalization_onboard>'<<words(EQOB.BAND@FILENAME,".",0)<<'</equalization_onboard>']endl
+	   ['\t\t\t</processing_parameters>']endl
+	   ['\t\t</image_processor>']endl
+	   ['\t\t<target_coverage>',!dont_target]endl
+	   ['\t\t\t<overfly_time unit="UTC">'<<target_time<<'</overfly_time>',!dont_target]endl
+	   ['\t\t\t<pixels>'<<target_pixels SAMPLES<<'</pixels>',!dont_target]endl
+	   ['\t\t\t<along_track_edge unit="km">'<<ifndef(round(edge_dist_at_km,3),"NA")<<'</along_track_edge>',!dont_target]endl
+	   ['\t\t\t<across_track_edge unit="km">'<<ifndef(round(edge_dist_xt_km,3),"NA")<<'</across_track_edge>',!dont_target]endl
+	   ['\t\t</target_coverage>',!dont_target]endl
+	   ['\t</processing_data>']endl
+	   ['</image>']endl
+	;
+
+// Output Condition:
+
+	bp==0?(warp_file@name(outname<<".warp")+meta_file@name(outname<<".xml")):1
+

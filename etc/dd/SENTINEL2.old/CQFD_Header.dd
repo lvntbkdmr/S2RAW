@@ -1,0 +1,5 @@
+CQFD_Header|CQFD file Standard Header|*
+#
+cqfd_t|String|*|4
+dd_len|aUShort|*|2
+dd|String|*|dd_len|*

@@ -1,0 +1,738 @@
+#!/usr/bin/gawk -f
+
+BEGIN {
+
+	# projection option, support "geo", "none", <proj4-def-string>
+	if(proj=="") {
+		proj="geo"
+	}
+	
+	proj_def=""
+	if(proj=="geo") {
+		proj_def="+proj=latlong +datum=WGS84"
+	} else {
+		proj_def=proj
+	}
+
+	# init parameters
+
+	gdal_opts=""
+	gdalwarp_opts=""
+	gdalmerge_opts=""
+
+	if(order!="") gdalwarp_opts="-order " order
+
+	if(out_type!="") gdal_opts=gdal_opts" -ot " out_type
+	if(res!="") {
+		split(res,A,"x")
+		if (A[2]=="") A[2]=A[1]
+		gdalwarp_opts=gdalwarp_opts " -tr " A[1] " " A[2]
+		gdalmerge_opts=gdalmerge_opts " -ps " A[1] " " A[2]
+	}
+
+
+	prog=basename(ENVIRON["_"])
+
+	#-vwork_dir=<working-directory>
+	if(work_dir=="") work_dir="/tmp"
+	work_dir=work_dir sprintf("/%s.tmp.%d",prog,PROCINFO["pid"])
+
+	#-vout_dir=<output-directory>
+	if(out_dir=="") out_dir="."
+
+	#-vformat=gif|png|jpg|tif|j2k|jp2
+	if(format=="") format="tif"
+	else format=tolower(format)
+	if((format=="tif")||(format=="tiff")) {
+		gdal_frmt="GTiff"
+	} else if(format=="gif") {
+		gdal_frmt="GIF"
+	} else if(format=="png") {
+		gdal_frmt="PNG"
+	} else if((format=="jp2") || (format=="j2k")) {
+		gdal_frmt="JPEG2000"
+	} else if(format=="jpg") {
+		gdal_frmt="JPEG"
+	} else {
+		dolog("Unsupported output format '" format "'. Aborting...")
+		exit(1)
+	}
+
+	#-vtfw=1
+	tfw=(tfw+0>0);
+
+	if(gcp_overlap!="") {
+		if(gcp_line_overlap=="") gcp_line_overlap=gcp_overlap;
+		if(gcp_pix_overlap=="") gcp_pix_overlap=gcp_overlap;
+	}
+
+	#-vgcp_line_overlap=<GCP line overlap between frames (%)>
+	if(gcp_line_overlap=="") gcp_line_overlap=0.2
+	else {
+		gcp_line_overlap=gcp_line_overlap/100
+		if(gcp_line_overlap<0) gcp_line_overlap=0
+	}
+
+	#-vgcp_pix_overlap=<GCP line overlap between frames (%)>
+	if(gcp_pix_overlap=="") gcp_pix_overlap=0.05
+	else {
+		gcp_pix_overlap=gcp_pix_overlap/100
+		if(gcp_pix_overlap<0) gcp_pix_overlap=0
+	}
+
+	#-vline_overlap=<number of overlapping pixel lines between frames>
+	if(line_overlap=="") line_overlap=1
+	else if(line_overlap<0) line_overlap=0
+
+	if(pix_overlap=="") pix_overlap=1
+	else if(pix_overlap<0) pix_overlap=0
+
+	#-vframe=<lines-per-frame> or <frames-merge>x<lines-per-frame>
+	if(frame=="") {
+		group=0
+		frame=-1
+	} else if(frame~/^[0-9][0-9]*x[0-9][0-9]*$/) {
+		split(frame,A,"x")
+		frame=A[2]
+		group=A[1]
+		if(group<1) { group=0 }
+	}
+
+	# -vdisc_margin=<factor> 
+	# factor to apply to frame longitude extent for discontinuity detection
+	# e.g. disc_margin=2 to consider the longitude extent is double from what is reported by GCP
+	if(disc_margin=="") disc_margin=0
+
+	#Init constants
+	#inter_frmt="VRT"
+	inter_frmt="GTiff"
+	warp_cmd=sprintf("rm warp.%s >/dev/null 2>&1; gdalwarp -q -wm 2048 %%s -dstalpha -t_srs '%s' %s%s -of %s trunc.vrt warp.%s",inter_frmt,proj_def,gdalwarp_opts,gdal_opts,inter_frmt,inter_frmt)
+	rmwarp_cmd="rm -f warp.GTiff > /dev/null"
+	#rmtrunc_cmd="rm -f trunc.tif > /dev/null"
+	rmtrunc_cmd="rm -f trunc.vrt > /dev/null"
+	rmgcp_cmd="rm -f gcp_file > /dev/null"
+
+
+	out_dir=abspath(out_dir)
+
+	#create working environment
+	system("mkdir " work_dir " >/dev/null 2>&1")
+
+	geobox_cmd=abspath(dirname(ENVIRON["_"])) "/geobox"
+
+	# process file input arguments
+	for(arg=1;arg<ARGC;arg++) {
+		IMAGE[arg]=ARGV[arg]
+		if(existfile(ARGV[arg] ".geo")>0) {
+			# assume it is a listgeo output file
+			ARGV[arg]=ARGV[arg]".geo"
+		} else {
+			# create a listgeo file in work dir and point to it
+			ARGV[arg]=basename(ARGV[arg]) ".geo"
+			if(doexec("listgeo -no_norm \"" abspath(IMAGE[arg]) "\" > " ARGV[arg])!=0) {
+				# log error and exit
+				dolog("Error: no GeoTiff information can be extracted from " IMAGE[arg])
+				clearwdir()
+				exit(1)
+			}
+		}
+	}
+
+	dolog(sprintf("Begin pid=%d format=%s files=%d work_dir='%s' out_dir='%s'",PROCINFO["pid"],format,ARGC-1,work_dir,out_dir))
+
+	warp_limit=1.2*2^20
+}
+
+FNR==1 {
+
+	delete GCP
+
+	# initialise processing
+	if(NR!=FNR) {system("rm -f " work_dir "/*")}
+
+
+	if(1) {
+		doexec(sprintf("cp \"%s\" ./",abspath(IMAGE[arg])))
+		#doexec("ls -lrt")
+		IMAGE[arg]=basename(IMAGE[arg])
+	}
+
+	image_fpath=IMAGE[ARGIND]
+	image_fname=basename(image_fpath)
+
+	# initialise for RasterPixelIsArea
+	raster_coord_offset=0
+
+	# get the image extents
+	line=getcmdoutput(sprintf("gdalinfo -nogcp -nomd \"%s\" | grep '^Size is'",abspath(image_fpath)))
+	if(match(line,/Size is /)<0) doabort(sprintf("Invalid or missing image file %s",image_fpath))
+	split(substr(line,RSTART+RLENGTH),A,","); num_lines=A[2]; num_pixs=A[1]
+
+	# init the area parameters
+	delete AREA
+	if(match(areas,/^ *$/)) {
+		num_areas=1
+		AREA[1]=0
+	} else if(match(areas,/^[0-9 ]*$/)) {
+		num_areas=areas
+		for(a=1;a<num_areas;a++) {
+			AREA[a]=int(num_pixs*a/num_areas)
+		}
+	} else if(match(areas,/^:[0-9: ]*$/)) {
+		num_a=split(areas,A,":")
+		num_areas=1
+		#for(a=1;a<=num_a;a+=1) A[a]=sprintf("%.6d",A[a])
+		asort(A)
+		last_area=0
+		for(a=1;a<=num_a;a+=1) {
+			if((A[a]+0>0)&&(A[a]!="")&&(A[a]+0!=last_area+0)&&(A[a]+0<num_pixs-1)) {
+				AREA[num_areas]=A[a]
+				num_areas++
+				last_area=AREA[a]
+			}
+		}
+	} else {
+		num_areas=1
+		AREA[1]=0
+	}
+	#for(a=1;a<num_areas;a++) print a ":" AREA[a]; exit
+
+	#Init
+	color_type=getcmdoutput(sprintf(\
+	   "gdalinfo \"%s\" | gawk '/ColorInterp=(Alpha|Undefined)/ {a=\"Matte\";next} /Band 3.*ColorInterp=Blue/ {a=\"\";t=\"TrueColor\";next} /ColorInterp=/ {a=\"\";sub(/^.*ColorInterp=/,\"\"); t=$0} END {print t a}'",\
+	   abspath(image_fpath)\
+	))
+#	color_type="GrayMatte"
+
+	trunc_cmd_prefix="gdal_translate -quiet \"%s\" -of vrt trunc.vrt -a_srs WGS84 --optfile gcp_file"
+	src_img=abspath(image_fpath)
+	if(color_type=="Palette") {
+		# in case we don't have a TrueColor convert to PNG in TrueColorMatte
+
+		src_img=work_dir "/image.png"
+
+		checkexec(sprintf(\
+		   "convert \"%s\" -type TrueColorMatte -depth 8 \"%s\"",\
+		   abspath(image_fpath),src_img\
+		))
+
+	} else if(color_type=="GrayMatte") {
+	 	# if source file is GrayMatte, gdal_translate does not
+		# well recognise the Alpha channel
+		# now solved with the -srcalpha switch of gdalwarp
+		# trunc_cmd_prefix=trunc_cmd_prefix " -b 1 -b 1 -b 1 -b 2"
+
+	}
+
+	if(match(color_type,/Matte/)==0) {
+		nodata="-srcnodata 0"
+	} else {
+		nodata="-srcalpha"
+	}
+
+	trunc_cmd_prefix=sprintf(trunc_cmd_prefix,src_img)
+
+
+	# set frame_cut to the swath width or to the argument preset
+	if(frame<=0) {
+
+		if((frame<0)&&(num_pixs*num_pixs>warp_limit)) {
+			frame_cut=int(warp_limit/num_pixs)
+		}
+
+		else frame_cut=num_pixs 
+		# adjust to avoid leaving small truncs
+		num_truncs=num_lines/frame_cut
+
+		if((int(num_truncs)/num_truncs) > 0.8) {
+			frame_cut=num_lines/(int(num_truncs+0.5))
+			if(frame_cut!=int(frame_cut)) frame_cut=int(frame_cut)+1
+		}
+
+	} else {
+
+		frame_cut=frame
+
+	}
+
+	tp_input=-1
+	num_gcp=-1
+
+	dolog(sprintf(\
+	   "Warping file='%s' color=%s lines=%d columns=%d step=%d",\
+	   image_fpath,\
+	   color_type,\
+	   num_lines,\
+	   num_pixs,\
+	   frame_cut,\
+	   work_dir\
+	))
+
+}
+
+/^ *ModelTiepointTag/ {
+	gsub(/.*\(/,"");gsub(/,.*/,"")
+	num_gcp=$0/2
+	tp_input=0;
+	next;
+}
+
+/^ *GTRasterTypeGeoKey.*RasterPixelIsPoint/ {
+	raster_coord_offset=0.5
+}
+
+(tp_input<num_gcp) {
+	pix=$1; line=$2
+	getline;
+	lon=$1; lat=$2
+	gcp_key=sprintf("%.6d/%.6d/%lf/%lf",line,pix,lon,lat);
+	GCP[tp_input]=gcp_key
+	tp_input++
+	next
+}
+
+/^ *End_Of_Geotiff/ {
+
+	asort(GCP)
+
+	frame_gcp_start=1;
+	frame_num=1
+	num_frames=int(num_lines/frame_cut); if(num_frames*frame_cut!=num_lines) num_frames++
+
+	for(frame_start=0;frame_start<num_lines;frame_start+=frame_cut) {
+
+		if(group) {
+			sub_frame=(frame_num-1)%group+1
+			frame_group=int((frame_num-1)/group)+1
+		} else {
+			frame_group=frame_num
+			sub_frame=1
+		}
+
+		# output filename prefix
+		group_fname=sprintf("%s.frame%.3d",image_fname,frame_group)
+
+		frame_first_line=int(0.5+frame_start-line_overlap)
+		if(frame_first_line<0) frame_first_line=0
+		#frame_last_line=int(0.5+frame_start+frame_cut+line_overlap-1)
+		frame_last_line=int(0.5+frame_start+frame_cut-1)
+		if(frame_last_line>=num_lines) frame_last_line=num_lines-1
+
+		frame_nlines=frame_last_line-frame_first_line+1
+
+		dolog(sprintf("Processing frame %.3d%s from %d to %d...",frame_group,group?"/"sub_frame:"",frame_first_line,frame_last_line))
+
+		# init frame processing
+
+		gcp_start_seek_line=frame_last_line-frame_cut*gcp_line_overlap
+		gcp_stop_seek_line=frame_last_line+frame_cut*gcp_line_overlap
+
+		# print "seek=" gcp_start_seek_line "," gcp_stop_seek_line
+
+		# associate gcps
+
+		gcp_start_seek=1;
+		gcp_start_line=-1
+		gcp_stop_line=-1
+
+		frame_gcps=0
+		delete GCP_FRAME
+
+		
+		for(gcp=frame_gcp_start;gcp<=num_gcp;gcp+=1) {
+#			print GCP[gcp]
+			split(GCP[gcp],GCP_FIELDS,"/");
+			gcp_line=GCP_FIELDS[1]
+
+			# seek first gcp line for next frame except if last frame
+			if(gcp_start_seek) {
+				if(gcp_line>=gcp_start_seek_line) {
+					# print "found start of next"
+					gcp_start_seek=0
+				} else if(gcp_line>gcp_start_line) {
+					gcp_start_line=gcp_line
+					frame_gcp_start=gcp
+				}
+			}
+			if(frame_last_line<num_lines-1) {
+				if(gcp_line>=gcp_stop_seek_line) {
+					if(gcp_stop_line<0) {
+						gcp_stop_line=gcp_line
+					} else if(gcp_line>gcp_stop_line) {
+						break
+					}
+				}
+			}
+
+			#append gcp in gcp_file
+#			printf("-gcp %f %f %lf %lf\n",GCP_FIELDS[2]+raster_coord_offset,gcp_line-frame_first_line+raster_coord_offset,lon,GCP_FIELDS[4]) >> work_dir"/gcp_file"
+
+			frame_gcps++
+			gcp_key=sprintf("%.6d/%.6d/%lf/%lf",
+			   GCP_FIELDS[2],
+			   gcp_line-frame_first_line,
+			   GCP_FIELDS[3],
+			   GCP_FIELDS[4])
+
+			GCP_FRAME[frame_gcps]=gcp_key
+			#print gcp_line","(gcp_line-frame_first_line)/frame_cut*100
+			#print gcp_key
+		}
+
+		#print "GCPS="frame_gcps
+
+		# GCP_FRAME now contains all tp applicable to that frame
+		# process column spliting
+
+		asort(GCP_FRAME)
+
+		area_gcp_start=1
+
+		group_disc_flag=0
+
+		for(area_num=1;area_num<=num_areas;area_num++) {
+
+			if(area_num==1) {
+				area_first_pix=0
+			} else {
+				area_first_pix=AREA[area_num-1]-pix_overlap
+				if(area_first_pix<0) area_first_pix=0
+			}
+
+			if(area_num==num_areas) {
+				area_last_pix=num_pixs-1
+			} else {
+				#area_last_pix=AREA[area_num]+pix_overlap-1
+				area_last_pix=AREA[area_num]-1
+				if(area_last_pix>=num_pixs) area_last_pix=num_pixs-1
+			}
+
+			area_npixs=area_last_pix-area_first_pix+1
+
+			if(num_areas>1) {
+			   dolog(\
+			      sprintf("Processing area %c from %d to %d...",\
+			         area_num+64,area_first_pix,area_last_pix\
+			      )\
+			   )\
+			}
+
+			# init area processing
+			#DEBUG print "Z:" area_last_pix "," num_pixs "," num_pixs/num_areas*gcp_pix_overlap ","area_last_pix+1-num_pixs/num_areas*gcp_pix_overlap
+
+			gcp_start_seek_pix=area_last_pix+1-num_pixs/num_areas*gcp_pix_overlap
+			gcp_stop_seek_pix=area_last_pix+num_pixs/num_areas*gcp_pix_overlap
+
+			gcp_start_seek=1;
+			gcp_start_pix=-1
+			gcp_stop_pix=-1
+
+			minlon=1000; minlat=1000;
+			maxlon=-1000; maxlat=-1000;
+			disc_flag=0
+
+			# clear gcp list
+			checkexec(rmgcp_cmd)
+
+			for(gcp=area_gcp_start;gcp<=frame_gcps;gcp+=1) {
+				split(GCP_FRAME[gcp],GCP_FIELDS,"/");
+				gcp_pix=GCP_FIELDS[1]
+
+				lon=GCP_FIELDS[3]
+				lat=GCP_FIELDS[4]
+
+				# correct longitudes for -180,180 discontinuities
+				# disc_flag=1 : discontinuity at +180 (all lon are >0)
+				# disc_flag=-1: discontinuity at -180 (all lon are <0)
+				if(lon>0) {
+					lon_diff=lon-minlon
+					if(lon_diff>180) {
+						disc_flag=-1
+						lon-=360
+					}
+				} else {
+					lon_diff=maxlon-lon
+					if(lon_diff>180) {
+						disc_flag=1
+						lon+=360
+					}
+				}
+				# adjust longitude min and max
+				if(lon<minlon) {minlon=lon}
+				if(lon>maxlon) {maxlon=lon}
+	
+				# adjust latitude min and max
+				if(lat<minlat) {minlat=lat}
+				if(lat>maxlat) {maxlat=lat}
+	
+				# seek first gcp pix for next area except if last area
+				if(area_num!=num_areas) {
+					if(gcp_start_seek) {
+						if(gcp_pix>=gcp_start_seek_pix) {
+							gcp_start_seek=0
+						}
+						if(gcp_pix>gcp_start_pix) {
+							#DEBUG print "SEEK_START_NEXT="gcp_pix","gcp
+							gcp_start_pix=gcp_pix
+							area_gcp_start=gcp
+						}
+					}
+					if(gcp_pix>=gcp_stop_seek_pix) {
+						#DEBUG print "SEEK_STOP="gcp_pix","gcp_stop_seek_pix","gcp_stop_pix
+						if(gcp_stop_pix<0) {
+							gcp_stop_pix=gcp_pix
+							break
+						} else if(gcp_pix>gcp_stop_pix) {
+							break
+						}
+					}
+				}
+				#DEBUG printf("add GCP %f %f %lf %lf\n",\
+				#   gcp_pix-area_first_pix+raster_coord_offset,\
+				#   GCP_FIELDS[2]+raster_coord_offset,\
+				#   lon,GCP_FIELDS[4])
+				printf("-gcp %f %f %lf %lf\n",\
+				   gcp_pix-area_first_pix+raster_coord_offset,\
+				   GCP_FIELDS[2]+raster_coord_offset,\
+				   lon,GCP_FIELDS[4]\
+				) >> work_dir"/gcp_file"
+
+			}
+			#system("cp "work_dir"/gcp_file ~/Downloads/gcp_file"frame_num)
+
+			# force discontinuity flag if close from boundary
+			if((disc_margin>0)&&(disc_flag==0)) {
+				f1=(1-disc_margin)/2
+				f2=(1+disc_margin)/2
+#				dolog(minlon*f1+maxlon*f2)
+#				dolog(minlon*f2+maxlon*f1)
+				if(minlon*f1+maxlon*f2>180) disc_flag=1
+				else if(minlon*f2+maxlon*f1<-180) disc_flag=-1
+			}
+
+			if(disc_flag) dolog("180 meridian crossing="disc_flag)
+			
+			trunc_cmd=trunc_cmd_prefix sprintf(" -srcwin %d %d %d %d",\
+			   area_first_pix, frame_first_line,\
+			   area_npixs,frame_nlines\
+			)
+
+			close(work_dir"/gcp_file")
+
+			# the filename of the output file
+			outfname=group?group_fname"."sub_frame:group_fname
+			if(num_areas>1) outfname=sprintf("%s%c",outfname,64+area_num)
+
+			# generate the trunc file
+			checkexec(trunc_cmd)
+
+			# checkexec("cat gcp_file");
+
+			if(proj=="none") {
+				if((disc_margin>=0)&&disc_flag) {
+					copyout(group,"trunc.tif",outfname disc_flag>0?"b":"a")
+					swap_gcp_cmd=sprintf("gawk '{$4%s=360; print}' gcp_file > gcp_file_tmp; mv gcp_file_tmp gcp_file",disc_flag>0?"-":"+")
+					checkexec(swap_gcp_cmd)
+					checkexec(rmtrunc_cmd)
+					checkexec(trunc_cmd)
+					copyout(group,"trunc.tif",outfname disc_flag>0?"a":"b")
+				} else {
+					copyout(group,"trunc.tif",outfname)
+				}
+				# remove the trunc
+				checkexec(rmtrunc_cmd)
+				continue;
+			} 
+
+
+			# warp the trunc
+			# dolog(sprintf(warp_cmd,nodata))
+			#checkexec("printf start")
+			checkexec(sprintf(warp_cmd,nodata))
+			#checkexec("echo .stop")
+
+			# translate from HFA to GTiff
+			if(inter_frmt!="GTiff") { checkexec(sprintf("gdal_translate -quiet warp.%s warp.GTiff && rm warp.%s",inter_frmt,inter_frmt)) }
+
+			# remove the trunc
+			checkexec(rmtrunc_cmd)
+
+			# case of -180/180 disc_flag
+			if((disc_margin>=0)&&disc_flag) {
+
+				#create geotiff tag file and get image properties
+				checkexec("listgeo -d warp.GTiff > frame.geo")
+				split(getcmdoutput(geobox_cmd " frame.geo"),A," ")
+
+				lon0=A[3]; lon1=A[5]
+
+				if(lon0<-180) {
+					if(lon1>-180) {
+						#then split at discontinuity
+						splitx=int((-180-lon0)/A[7]+0.5)
+						checkexec(sprintf("gdal_translate -quiet -srcwin %d 0 %d %d warp.GTiff warpB.tif",splitx,A[1]-splitx,A[2]))
+						checkexec(sprintf("gdal_translate -quiet -srcwin 0 0 %d %d warp.GTiff warpA.tif",splitx,A[2]))
+						setlon0(lon0+360,"warpA.tif","frame.geo")
+
+						checkexec(rmwarp_cmd)
+						copyout(group,"warpA.tif",outfname "a"); copyout(group,"warpB.tif",outfname "b")
+					} else {
+						setlon0(lon0+360,"warp.GTiff","frame.geo")
+						copyout(group,"warp.GTiff",outfname)
+					}
+				} else if(lon1>180) {
+					if(lon0<180) {
+						#then split at discontinuity
+						splitx=int((180-lon0)/A[7]+0.5)
+						checkexec(sprintf("gdal_translate -quiet -srcwin 0 0 %d %d warp.GTiff warpA.tif",splitx,A[2]))
+						checkexec(sprintf("gdal_translate -quiet -srcwin %d 0 %d %d warp.GTiff warpB.tif",splitx,A[1]-splitx,A[2]))
+						setlon0(lon0-360+splitx*A[7],"warpB.tif","frame.geo")
+
+						checkexec(rmwarp_cmd)
+						copyout(group,"warpA.tif",outfname "a"); copyout(group,"warpB.tif",outfname "b")
+					} else {
+						setlon0(lon0-360,"warp.GTiff","frame.geo")
+						copyout(group,"warp.GTiff",outfname)
+					}
+				} else {
+					copyout(group,"warp.GTiff",outfname)
+				}
+				checkexec("rm -f frame.geo >/dev/null 2>&1")
+			} else {
+				copyout(group,"warp.GTiff",outfname)
+			}
+
+			if(group&&(disc_flag!=0)) group_disc_flag=disc_flag
+		}
+
+		if(group&&((sub_frame==group)||(frame_num==num_frames))) {
+			# create the mosaic(s)
+			# mosaic_cmd=sprintf("perl -MGeo::Mosaic -e Geo::Mosaic::main -- -c Over -o \"%s/\"",out_dir)
+			mosaic_cmd="gdal_merge.py -n 0 -o mosaic.tif "
+
+			dolog(sprintf("Merging frame %.3d images...",frame_group))
+			if(group_disc_flag==0) {
+				checkexec(mosaic_cmd sprintf("\"%s.\"*.tif",group_fname))
+				copyout(0,"mosaic.tif",group_fname)
+			} else {
+				side=group_disc_flag>0?"a":"b"
+				checkexec(mosaic_cmd sprintf("\"%s.\"*[0-9].tif \"%s.\"*%s.tif",group_fname,group_fname,side))
+				copyout(0,"mosaic.tif",group_fname side)
+
+				side=group_disc_flag>0?"b":"a"
+				checkexec(mosaic_cmd sprintf("\"%s.\"*%s.tif",group_fname,side))
+				copyout(0,"mosaic.tif",group_fname side)
+			}
+			checkexec(sprintf("rm -f \"%s\".[0-9]*.tif*",group_fname))
+		}
+
+		frame_num++
+
+	}
+
+}
+
+END {
+	dolog(sprintf("End pid=%d",PROCINFO["pid"]))
+	clearwdir();
+	exit(0)
+}
+
+
+function getcmdoutput(cmd,       line) {
+	cmd="cd " work_dir ";" cmd
+	cmd | getline line
+	close(cmd)
+	return line
+}
+
+function doabort(msg) {
+	dolog(msg)
+	nextfile
+}
+
+function clearwdir() {
+	system("rm -rf " work_dir " > /dev/null 2>&1")
+}
+
+function dolog(msg) {
+	printf("%s: %s %s\n",strftime("%Y-%m-%d %k:%M:%S"),prog,msg)
+}
+
+function setlon0(lon,fname,geofname) {
+	checkexec(sprintf("gawk '/ModelTiepointTag/ {print;getline;print;getline;$1=\"%10lf\"} {print}' %s > tmp.geo",lon,geofname))
+	checkexec(sprintf("geotifcp -g tmp.geo %s tmp.tif",fname))
+	checkexec(sprintf("mv tmp.tif %s",fname))
+	checkexec("rm -f tmp.geo > /dev/null")
+}
+
+function copyout(group,localfname,outprefix	,tfwfname) {
+	if(group) {
+		checkexec(sprintf("mv \"%s\" \"%s.tif\"",localfname,outprefix))
+		return
+	}
+	outprefix=out_dir "/" outprefix
+
+	checkexec(sprintf("listgeo -d %s > \"%s.%s.geo\"",localfname,outprefix,format))
+	
+	if(tfw) {
+		tfwfname=localfname; sub(/\.[^.]*$/,".tfw",tfwfname);
+		checkexec(sprintf("listgeo -tfw %s 2>/dev/null && mv \"%s\" \"%s.tfw\"",localfname,tfwfname,outprefix))
+	}
+
+	if(gdal_frmt!="GTiff") {
+		if(gdal_frmt=="GIF") {
+			checkexec(sprintf("GDAL_PAM_ENABLED=NO gdal_translate -quiet -of PNG %s %s.png",localfname,localfname))
+			checkexec(sprintf("convert %s \"%s.%s\"",localfname".png",outprefix,format))
+			checkexec(sprintf("rm -f %s.png > /dev/null",localfname))
+		} else if(gdal_frmt=="JPEG2000") {
+			checkexec(sprintf("convert %s \"%s.%s\"",localfname,outprefix,format))
+		} else {
+			checkexec(sprintf("GDAL_PAM_ENABLED=NO gdal_translate -quiet -of %s %s \"%s.%s\"",gdal_frmt,localfname,outprefix,format))
+		}
+		checkexec(sprintf("rm -f %s > /dev/null",localfname))
+	} else {
+		checkexec(sprintf("mv \"%s\" \"%s.%s\"",localfname,outprefix,format))
+	}
+}
+
+function doexec(cmd) {
+	return system("\\cd " work_dir "; " cmd " 2> error.log")
+}
+function logexec(cmd,    cmd_status) {
+	cmd_status=doexec(cmd)
+	if(cmd_status!=0) {
+		dolog(sprintf("Error(%d) executing command \"%s\"",cmd_status,cmd))
+	}
+	return cmd_status
+}
+
+function checkexec(cmd) {
+	if(logexec(cmd)!=0) {
+		logfile=work_dir "/error.log"
+		while(getline line < logfile) dolog(line)
+		close(logfile)
+		doabort("Aborting")
+	}
+}
+
+function abspath(path) {
+	if(substr(path,1,1)=="/") return path
+	return path=ENVIRON["PWD"] "/" path
+}
+
+function existfile(path) {
+	return system("ls " path " > /dev/null 2>&1" )==0?1:0
+}
+
+function dirname(path,     idx) {
+	idx=match(path,/\/[^\/]*$/)
+	if(idx==1) return "/"
+	if(idx>0) return substr(path,1,idx-1)
+	return "."
+}
+
+function basename(path) {
+	sub(/^.*\//,"",path)
+	return path
+}

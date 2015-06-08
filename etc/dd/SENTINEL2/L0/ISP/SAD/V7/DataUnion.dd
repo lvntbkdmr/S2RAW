@@ -1,0 +1,35 @@
+Union Secondary Header Option|Union Switch for Secondary Header Option|*
+#
+hktm_gen|UChar|*|*|% {}@SIZE-2-{scnd_hdr}@OFFSET_NEXT
+hktm_TIME|@DataTM_9_2_TIME|*|*|
+# AOCS SID 105 at position 2
+hktm_AOCS_GPSRA_Navigation_Solution|@DataTM_3_25_AOCS_105_6_GPSRA_Navigation_Solution|*|*|
+hktm_AOCS_GPSRA_Time_Correlation|@DataTM_3_25_AOCS_106_6_GPSRA_Time_Correlation|*|*|
+hktm_AOCS_GPSRB_Navigation_Solution|@DataTM_3_25_AOCS_108_6_GPSRB_Navigation_Solution|*|*|
+hktm_AOCS_GPSRB_Time_Correlation|@DataTM_3_25_AOCS_109_6_GPSRB_Time_Correlation|*|*|
+# AOCS SID 110 at position 6
+hktm_AOCS_IMU1234_HK|@DataTM_3_25_AOCS_110_6_IMU1234_HK|*|*|
+hktm_AOCS_IMU1234_Datasample1|@DataTM_3_25_AOCS_111_6_IMU1234_Datasample1|*|*|
+hktm_AOCS_IMU1234_Datasample2|@DataTM_3_25_AOCS_112_6_IMU1234_Datasample2|*|*|
+hktm_AOCS_IMU1234_Datasample3|@DataTM_3_25_AOCS_113_6_IMU1234_Datasample3|*|*|
+hktm_AOCS_IMU1234_Datasample4|@DataTM_3_25_AOCS_114_6_IMU1234_Datasample4|*|*|
+hktm_AOCS_IMU1234_Datasample5|@DataTM_3_25_AOCS_115_6_IMU1234_Datasample5|*|*|
+hktm_AOCS_IMU1234_Datasample6|@DataTM_3_25_AOCS_116_6_IMU1234_Datasample6|*|*|
+hktm_AOCS_IMU1234_Datasample7|@DataTM_3_25_AOCS_117_6_IMU1234_Datasample7|*|*|
+hktm_AOCS_IMU1234_Datasample8|@DataTM_3_25_AOCS_118_6_IMU1234_Datasample8|*|*|
+hktm_AOCS_IMU1234_Datasample9|@DataTM_3_25_AOCS_119_6_IMU1234_Datasample9|*|*|
+hktm_AOCS_IMU1234_Datasample10|@DataTM_3_25_AOCS_120_6_IMU1234_Datasample10|*|*|
+hktm_AOCS-TM1|@DataTM_3_25_AOCS_121_6_AOCS-TM1|*|*|
+hktm_AOCS-TM2|@DataTM_3_25_AOCS_122_6_AOCS-TM2|*|*|
+# AOCS SID 124 at position 19
+hktm_AOCS_STR1_SDB_Status_Data_Block|@DataTM_3_25_AOCS_124_6_STR1_SDB_Status_Data_Block|*|*|
+hktm_AOCS_STR2_SDB_Status_Data_Block|@DataTM_3_25_AOCS_125_6_STR2_SDB_Status_Data_Block|*|*|
+hktm_AOCS_STR3_SDB_Status_Data_Block|@DataTM_3_25_AOCS_126_6_STR3_SDB_Status_Data_Block|*|*|
+# MSIC SID 123 at position 22
+hktm_MSI-SAD_Packet|@DataTM_3_25_MSIC_123_6_MSI-SAD_Packet|*|*|
+# STR1 SID 105 at position 23
+hktm_STR1_TM_ADB_1|@DataTM_3_25_STR1_105_6_TM_ADB_1|*|*|
+# STR2 SID 105 at position 24
+hktm_STR2_TM_ADB_2|@DataTM_3_25_STR2_105_6_TM_ADB_2|*|*|
+# STR3 SID 105 at position 25
+hktm_STR2_TM_ADB_2|@DataTM_3_25_STR3_105_6_TM_ADB_3|*|*|

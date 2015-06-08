@@ -1,0 +1,70 @@
+# ------------------------------------------------------------------------------
+# Examples on CADU decoding
+
+# Display CADU structure
+$> recread vcdu_caseC -base=CADU -D frame_bytes=-1 -i -r -first=0 -last=1 
+
+# VCID extracted from CADU files
+$> recread vcdu_caseC -base=CADU -D frame_bytes=-1 -r frame_hdr.vcid
+
+
+
+
+
+# General
+$> recread caseC_VC6_VCDU -base=CADU -D frame_bytes=-1  payload | recread - -base=ISP -r -D isp_type=ISP
+
+# Decode first ISP of the stream
+$> recread caseC_VC6_VCDU -base=CADU -D frame_bytes=-1  payload | recread - -base=ISP -r -D isp_type=ISP -first=0 -last=1
+
+
+# First 10 scene OBT 
+$> recread vcdu_caseC -base=CADU -D frame_bytes=-1  payload -b | recread - -base=ISP -r -D isp_type=ISP -first=0 -last=9 scnd_hdr.sys_anc_data.scene_obt.time
+
+
+# Read first ISP from CADU file
+recread vcdu_caseC -base=CADU  -D frame_bytes=-1 payload -b | recread - -base=ISP -D isp_type=MSI -first=0 -last=0 -r
+
+# Read ISP 32400 stream in it in binary to decode the SAD
+recread vcdu_caseC -base=CADU  -D frame_bytes=-1 payload -b | recread - -base= -D isp_type=ISP ISP.32400 -b | recread - -r -D isp_type=SAD
+
+
+# ------------------------------------------------------------------------------
+# Examples on ISP decoding
+
+
+# --------------------------------------------------------------------
+# to handle DPC annotations
+
+$> recread bin_AISP_DPCannotated__file -D isp_offset=2
+
+$> recread S2A_OPER_MSI_L0__GR_CGS1_20141019T220721_S20130708T041102_D12_B01.bin -D isp_offset=2 -base=ISP -D isp_type=AMSI  msiop -r scnd_hdr.sys_anc_data.scene_obt.time
+
+
+
+# --------------------------------------------------------------------
+
+
+
+$> recread caseC_ISP -base= -D isp_type=ISP -r ISP.32400
+
+
+$> recread caseC_ISP -base=ISP -r -D isp_type=ISP scnd_hdr.sys_anc_data.scene_obt.time | cut -d'=' -f 2 | uniq
+
+$> recread caseC_ISP -base=ISP -D isp_type=ISP -first=0 -last=32399 -D image_bytes=-1 prim_hdr scnd_hdr image_buffer crc -b | recread - -base=ISP -D isp_type=ISP
+
+$> recread caseC_ISP -base=ISP -D isp_type=ISP -first=32401 -last=97200 -D image_bytes=-1 prim_hdr scnd_hdr image_buffer crc -b >> caseC_ISP_MSI
+
+
+
+
+
+$> recread caseC_ISP -base=ISP -D isp_type=ISP -first=0 -last=32399 -D image_bytes=-1 ext_hdr msiop prim_hdr scnd_hdr image_buffer crc len -b > caseC_ISP_MSI
+
+
+
+$> recread caseC_ISP -base=ISP -D isp_type=ISP -first=0 -last=32399 -r -b > caseC_ISP_MSI
+
+$> recread caseC_ISP -base=ISP -D isp_type=ISP -first=32401 -last=97200 -r -b >> caseC_ISP_MSI
+
+$> recread caseC_ISP_MSI -base=ISP -r -D isp_type=ISP scnd_hdr.sys_anc_data.scene_obt.time

@@ -1,0 +1,5 @@
+Union Instrument Ancillary Data|Union Switch for Instrument Ancillary Data Compressed/Uncompressed|*
+#
+uncompressed|UChar|dummy|*|8|
+compressed|@InstrumentAncillaryData|*|*|8|
+#by_pass|@TO_BE_COMPETED|*|*|?|

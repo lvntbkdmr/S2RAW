@@ -1,0 +1,8 @@
+CCSDS ISP Time Status Record|*|*
+#
+~time_type|String||% bits(status_byte,3)?"OBT":"SCET"
+~sync_src|String||% bits(status_byte,4)?"EXT":"INT"
+~sync_method|String||% bits(status_byte,5)?"1HZ":"MIL-Bus"
+~sync_status|UChar||% bits(status_byte,6)
+~sync_enable|UChar||% bits(status_byte,7)
+status_byte|UChar|flag|*

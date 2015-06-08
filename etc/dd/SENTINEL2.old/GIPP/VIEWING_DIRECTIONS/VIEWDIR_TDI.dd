@@ -1,0 +1,12 @@
+VIEWDIR_TDI|VIEWDIR_TDI|*
+#
+tdi_config_strlen|aUShort|*|2
+tdi_config|String|*|tdi_config_strlen
+num_pixels|UShort|*|2
+TAN_PSI_X|Double|*|*|12,num_pixels
+TAN_PSI_Y|Double|*|*|12,num_pixels
+~PSI_X|Double|*|% 180/pi*atan({--.TAN_PSI_X}[iter1][iter]) %|12,num_pixels
+~PSI_Y|Double|*|% 180/pi*atan({--.TAN_PSI_Y}[iter1][iter]) %|12,num_pixels
+~AZIMUTH|Double|*|% 180/pi*atan(-1*{--.TAN_PSI_Y}[iter1][iter],{--.TAN_PSI_X}[iter1][iter]) %|12,num_pixels
+#~AZIMUTH|Double|*|% -180/pi*atan({--.TAN_PSI_Y}[iter1][iter],-1*{--.TAN_PSI_X}[iter1][iter]) %|12,num_pixels
+~ELEVATION|Double|*|% 180/pi*atan(sqrt({--.TAN_PSI_Y}[iter1][iter]^2+{--.TAN_PSI_X}[iter1][iter]^2)) %|12,num_pixels

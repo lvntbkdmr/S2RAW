@@ -1,0 +1,11 @@
+Sentinel-2 MSI ISP|Sentinel-2 downlinked source packet|% {+len} + {+IDLEPKT}@SIZE + {+SAD_TRAILER}@SIZE
+#
+~len|SLong|*|% dfep=option("#isp_type","AISP")[0,0]=="A"; isp_size=option("#isp_size",dfep?"DFEP":"ISP"); (((isp_size+0)>0)?isp_size+0:((((isp_size =="DFEP")&&dfep)?{ext_hdr#dfep.isp_len}:{prim_hdr.spkln})+7))+{ext_hdr}@OFFSET_NEXT %|
+ext_hdr|?option("#isp_type","AISP")[0,0]=="A"|HeaderUnion|*
+msiop|@MSIOP|*|0|*
+prim_hdr|@../PrimaryHeader|*|*
+scnd_hdr|@SecondaryHeader|*|*
+image_buffer|UChar|byte|*|% bytes=option("#image_bytes",0); bytes>=0?bytes:(len-2-{scnd_hdr}@OFFSET_NEXT)
+crc|UShort|CRC Word|2|*|% len-2
+IDLEPKT|@../SimpleISP|*|% {+len} %|% option("#idle",0)==0?0:(((#filesize>0)&&(crc@POS_NEXT>=#filesize))?0:IDLEPKT@lookup(1,"{prim_hdr.spkid.id}!=2047")) %|
+SAD_TRAILER|@../SimpleISP|*|% option("#sad_interleave",0)<0?#filesize-{--.IDLEPKT}@POS_NEXT:{+len} %|% option("#sad_interleave",0)==0?0:(((#filesize>0)&&(IDLEPKT@POS_NEXT>=#filesize))?0:SAD_TRAILER@lookup(1,"len>10000")) %|

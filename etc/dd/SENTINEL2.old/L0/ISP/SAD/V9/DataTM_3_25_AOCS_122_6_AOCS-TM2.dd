@@ -1,0 +1,16 @@
+DataTM_3_25_AOCS_122_6_AOCS-TM2|S2 SAD SRDB=ASY_ANC32122 APID=182: AOCS-TM2 TM(3,25,PRID=AOCS SID=122 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+oopIsValid|UChar|Determinator.OOP.Output: Flag indicating valid output SRDB=AST82393|1|*
+oopQualId|UChar|Determinator.OOP.Output: Oop solution quality index SRDB=AST82394|1|*
+oopPos_J_0|Double|Determinator.OOP.Output: Propagated position in inertial frame [0] SRDB=AST82395|8|*
+oopPos_J_1|Double|Determinator.OOP.Output: Propagated position in inertial frame [1] SRDB=AST82396|8|*
+oopPos_J_2|Double|Determinator.OOP.Output: Propagated position in inertial frame [2] SRDB=AST82397|8|*
+oopVel_J_0|Double|Determinator.OOP.Output: Propagated velocity in inertial frame [0] SRDB=AST82398|8|*
+oopVel_J_1|Double|Determinator.OOP.Output: Propagated velocity in inertial frame [1] SRDB=AST82399|8|*
+oopVel_J_2|Double|Determinator.OOP.Output: Propagated velocity in inertial frame [2] SRDB=AST82400|8|*
+oopOrbitAng|Double|Determinator.OOP.Output: Orbit angle (argument of latitude, range 0,2pi) SRDB=AST82401|8|*
+oopOrbitNum|ULong|Determinator.OOP.Output: Orbit number SRDB=AST82402|4|*
+oopTimeSec|Double|Determinator.OOP.Output: Time stamp of propagated output data SRDB=AST82403|8|*
+AO_oopGpsMjdUT1d|Double|AOCS OOP UT1 as modified julian date (day) SRDB=AST82404|8|*
+AO_oopGpsMjdUT1f|Double|AOCS OOP UT1 as modified julian date (fraction) SRDB=AST82405|8|*

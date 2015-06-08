@@ -1,0 +1,16 @@
+MSI Operation|MSI Operation|0
+#
+#~scene_time|DateTime|2000|% {-.scnd_hdr.sys_anc_data.scene_obt.time}-option("#obtref",0)/86400+datenum(option("#utcref","1980-01-06T00:00:00"),2000)
+#
+# APID 11-bit word is: SSVRWWDBBBB
+~vcm_board|UChar|VCM Board Number|% bits({-.prim_hdr.spkid.apid},8)
+~wicom|UChar|WICOM Number|% bits({-.prim_hdr.spkid.apid},5,2)
+~detector|UChar|Detector Number (Odd/Even)|% bits({-.prim_hdr.spkid.apid},4)
+~detector_id|SChar|Detector Identifier|% vcm_board?(detector?choose(wicom,-1,5,3,1):choose(wicom,-1,6,4,2)):(detector?choose(wicom,-1,11,9,7):choose(wicom,-1,12,10,8))
+~band_num|UShort|Band Number|% bits({-.prim_hdr.spkid.apid},0,4)
+~band_id|String|Band Identifier|% choose(band_num,"N/A","B1","B2","B3","B4","B5","B6","B7","B8","B8a","B9","B10","B11","B12")
+#
+~mode|String|System Operation Mode|% sys_op={-.scnd_hdr.sys_anc_data.sys_op}; (sys_op<16?choose(sys_op,"ERROR","INS-IMG","INS-NOBS","INS-EOBS"):(sys_op<32?choose((sys_op&15)-1,"ERROR","INS-DASC","INS-ABSR","INS-VIC"):choose(sys_op-33,"ERROR","INS-RAW","INS-TST")))
+~tdi_config|String|TDI Configuration|% ((option("#isp_comp",-1)>0)||({-.scnd_hdr.comp_status.modop}==0))?choose({-.scnd_hdr.ins_anc_data#compressed.0.vpm_tdi_mode},"ERROR","APPLIED","LINE_A","LINE_B","NONE"):"NA"
+~num_image_bytes|ULong|number of bytes in image_buffer field|% {-.len}-2-{-.scnd_hdr}@OFFSET_NEXT
+~ebblnc|ULong|WICOM EBBLNC|% num_image_bytes/2

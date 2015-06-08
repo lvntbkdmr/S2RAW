@@ -1,0 +1,6 @@
+Scene_Buffer|Buffer of MSI Scenes|*
+#
+SAD_HEADER|@../SimpleISP|*|% {+len} %|% option("#scene_sad_interleave",0)==0?0:SAD_HEADER@lookup(1,"len>10000") %|% option("#offset",0)
+~num_scene|ULLong|*|% SCENES@DIM
+~SORTED_SCENES|@.SCENES|*|% sort(datestr(.SCENES[iter]scene_obt.time,1980)iso) %|% SCENES@DIM
+SCENES|@Scene|*|*|inf|

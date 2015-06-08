@@ -1,0 +1,11 @@
+BAND|BAND|% 4*8*.num_tp_lines*12*.num_tp_cols+4 %|Local
+#
+band_num|UShort|*|*
+~band_id|String|Band Identifier|% choose(band_num,"N/A","B1","B2","B3","B4","B5","B6","B7","B8","B8a","B9","B10","B11","B12")
+num_det_pixels_fr|UShort|*|*
+lon|Double|*|*|.num_tp_lines,12,.num_tp_cols
+lat|Double|*|*|.num_tp_lines,12,.num_tp_cols
+sun_az|Double|*|*|.num_tp_lines,12,.num_tp_cols
+sun_el|Double|*|*|.num_tp_lines,12,.num_tp_cols
+~target_dist|Double|*|% lat={--.lat}[iter2][iter1][iter]; lon={--.lon}[iter2][iter1][iter];tlon=option("#tlon",0);tlat=option("#tlat",0);drad=acos(sin(pi/180*tlat)*sin(pi/180*lat)+cos(pi/180*tlat)*cos(pi/180*lat)*cos(pi/180*(lon-tlon))); dkm=drad*180/pi*1.852*60 %|.num_tp_lines,12,.num_tp_cols
+~target_scene|String|*|% det=option("#tdet",1); lat={--.lat}[iter][det-1][0]; lon={--.lon}[iter][det-1][0];tlon=option("#tlon",0);tlat=option("#tlat",0);drad=acos(sin(pi/180*tlat)*sin(pi/180*lat)+cos(pi/180*tlat)*cos(pi/180*lat)*cos(pi/180*(lon-tlon))); dkm=drad*180/pi*1.852*60 ; drad_max=option("#tdist",30)/180*pi/1.852/60; scene=datestr(.LINE_TIME[iter])ISO; scene=scene[0,3]<<scene[5,6]<<scene[8,12]<<scene[14,15]<<scene[17,18]; drad<=drad_max?scene:"" %|.num_tp_lines

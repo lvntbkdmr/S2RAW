@@ -1,0 +1,7 @@
+RADIOS2_EQUALIZATION_ONBOARD|RADIOS2_EQUALIZATION_ONBOARD|*|Local
+#
+cqfd_header|@/CQFD_Header|*|*
+applicability|aDateTime|*|19|3
+num_bands|aUShort|*|2
+#nuc_id|UShort|*|2
+BAND|@BAND|*|*|num_bands

@@ -1,0 +1,15 @@
+HKTM Features|HKTM Features|0
+#
+#~obt|DateTime|2000|% obt={-.prim_hdr.spkid.scnd_hdr_flag}?{-.scnd_hdr#hktm.obt.cuc_time}:((pcat<<prid=="00")?{-.data#hktm_TIME.obt.cuc_time}:0); (obt-option("#obtref",0))/86400+datenum(option("#utcref","1980-01-06T00:00:00"),2000)
+#
+# APID 11-bit word is PRID (7 bits) + PCAT (4 bits)
+~prid|UChar|PRID Code|% bits({-.prim_hdr.spkid.apid},4,7)
+#~prid_dev|String|PRID Device|% (prid==11)?"AOCS":((prid==37)?"STR1":((prid==38)?"STR2":((prid==39)?"STR3":((prid==9)?"MSIC":"ERROR"))))
+~prid_dev|String|PRID Device|% choose(numlookup(prid,9,11,37,38,39,48,49),"ERROR","MSIC","AOCS","STR1","STR2","STR3","GPSR-A","GPSR-B")
+~pcat|UChar|PCAT Code|% bits({-.prim_hdr.spkid.apid},0,4)
+~srv_type|SShort|PUS Service Type|% {-.prim_hdr.spkid.scnd_hdr_flag}?{-.scnd_hdr#hktm.service_type}:-1
+~srv_subtype|SShort|PUS Service Type|% {-.prim_hdr.spkid.scnd_hdr_flag}?{-.scnd_hdr#hktm.service_subtype}:-1
+#~sid|SChar|SID Code|% {-.prim_hdr.spkid.scnd_hdr_flag}?{-.scnd_hdr#hktm.sid}:-1
+~sid|UChar|SID Code|% {-.prim_hdr.spkid.scnd_hdr_flag}?{-.data#hktm_gen}[0]:-1
+~tm_ref|String|Type of TM packet|% ((prid==0)&&(pcat==0))?"TIME":(((prid==127)&&(pcat==15))?"IDLE":(((prid==2)&&(pcat==5))?"HPTM":("TM("<<srv_type<<","<<srv_subtype<<",PRID="<<prid_dev<<" SID="<<sid<<" PCAT="<<pcat<<")")))
+~data_switch|SShort|*|% ((pcat==0)&&(prid==0))?1:((prid==11)?choose(sid-105,0,2,3,0,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,19,20,21):(((prid==9)&&(sid==123))?22:(((prid==37)&&(sid==105))?23:(((prid==38)&&(sid==105))?24:(((prid==39)&&(sid==105))?25:0)))))

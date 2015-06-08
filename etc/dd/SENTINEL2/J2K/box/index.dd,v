@@ -1,0 +1,30 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	2012.11.27.11.28.09;	author olive;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@box||% + choose(lbox,lbox,8+dbox@@SIZE,xlbox[0])
+#
+lbox|ULong|LBox|4|
+tbox|String|TBox|4|
+xlbox|ULLong|*|8|% lbox==1
+#~size|SLLong|*|% choose({lbox},{lbox},8+{dbox}@@SIZE,{xlbox}[0])
+dbox|?strlookup(tbox,"jP  ","ftyp","jp2h","ihdr","colr","jp2c","res ","resd","resc","uuid","asoc","lbl ","xml ")+1|DBoxUnion|*|*
+@

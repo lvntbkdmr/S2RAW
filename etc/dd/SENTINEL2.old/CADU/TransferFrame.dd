@@ -1,0 +1,9 @@
+TransferFrame|Sentinel-2 Transfer Frame|1912
+#
+frame_hdr|@FrameHeader|Frame Header|*
+spare_fhp|UShort|1st Header Pointer|2
+~fhp|UShort|1st Header Pointer|% bits(spare_fhp,0,11)
+payload|Spare|Frame Payload|% len=option("#frame_bytes",0); len=len<0?1902:min(len,1902); ((frame_hdr.vcid==63)&&option("#hide_idle_frame_data",1))?0:len
+~num_isp_hdr|UShort|Number of ISP headers in Frame|% ISP_HDR@DIM
+#ISP_HDR1|@/L0/ISP/PrimaryHeader|ISP Header|*|1|% fhp@OFFSET_NEXT+fhp
+ISP_HDR|@/L0/ISP/PrimaryHeader|ISP Header|%{+spkln}+7 %|% (frame_hdr.vcid==63)||(fhp==0+'0x07ff')?0:ISP_HDR@lookup(1,"{}@POS+spkln+7>={--.}@POS+1912") +1 %|% spare_fhp@OFFSET_NEXT+fhp

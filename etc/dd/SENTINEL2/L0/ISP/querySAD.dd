@@ -1,0 +1,22 @@
+QuerySAD|QuerySAD|0
+#
+~isp_idx|SelectMap|-.ISP|% qapid=option("#apid",""); qsid=option("#sid",""); sid_match=vector(strcount(qsid,",")+1) [({hktm.prid_dev}<<"/"<<{hktm.sid})~words(qsid,",",$1)]; sid_match=qsid==""?1:max(sid_match); (option("trim_idle",0)&&({prim_hdr.spkid.id}==2047))?0:(qapid==""?1:((","<<qapid<<",")~("*,"<<{prim_hdr.spkid.apid}<<",*")))&&sid_match
+~isp_sidx|SLong|*|% idx={--.isp_idx}[iter]; sort_type=option("#sort",""); reverse=sort_type[0,0]=="-"; sort_type=reverse?sort_type[1,100]:sort_type; sort_ssc=sort(.ISP[idx]prim_hdr.spkscnt.ssc,.ISP[idx]prim_hdr.spkid.apid)@reverse(reverse,reverse); sort_sid=sort(.ISP[idx]hktm.prid_dev,.ISP[idx]hktm.sid)@reverse(reverse,reverse); sort_obt=sort(datestr(.ISP[idx]scnd_hdr#hktm.obt.time,1980)iso)@reverse(reverse); sort_acq=sort(datestr(.ISP[idx]ext_hdr#dfep.acqt.time,2000)iso)@reverse(reverse); s=choose(strlookup(sort_type,"acq","obt","ssc","sid"),iter,sort_acq,sort_obt,sort_ssc,sort_sid); {--.isp_idx}[s] %| isp_idx@DIM
+~isp_count|ULLong|*|isp_idx@DIM
+~ISP|@.ISP|*|% {--.isp_sidx}[iter] %| isp_idx@DIM
+#~isp_aocs_idx|SelectMap|-.ISP|% hktm.prid_dev=="AOCS"
+#~ISP_AOCS|@.ISP|*|% {--.isp_aocs_idx}[iter] %| isp_aocs_idx@DIM
+#~isp_aocs_105_idx|SelectMap|-.ISP|% hktm.prid_dev=="AOCS" && hktm.sid==105
+#~ISP_AOCS_105|@.ISP|*|% {--.isp_aocs_105_idx}[iter] %| isp_aocs_105_idx@DIM
+#~isp_aocs_108_idx|SelectMap|-.ISP|% hktm.prid_dev=="AOCS" && hktm.sid==108
+#~ISP_AOCS_108|@.ISP|*|% {--.isp_aocs_108_idx}[iter] %| isp_aocs_108_idx@DIM
+#~isp_aocs_121_idx|SelectMap|-.ISP|% hktm.prid_dev=="AOCS" && hktm.sid==121
+#~ISP_AOCS_121|@.ISP|*|% {--.isp_aocs_121_idx}[iter] %| isp_aocs_121_idx@DIM
+#~isp_str_idx|SelectMap|-.ISP|% hktm.prid_dev~"STR?"
+#~ISP_STR|@.ISP|*|% {--.isp_str_idx}[iter] %| isp_str_idx@DIM
+#~isp_str1_idx|SelectMap|-.ISP|% hktm.prid_dev=="STR1"
+#~ISP_STR1|@.ISP|*|% {--.isp_str1_idx}[iter] %| isp_str1_idx@DIM
+#~isp_str2_idx|SelectMap|-.ISP|% hktm.prid_dev=="STR2"
+#~ISP_STR2|@.ISP|*|% {--.isp_str2_idx}[iter] %| isp_str2_idx@DIM
+#~isp_msic_idx|SelectMap|-.ISP|% hktm.prid_dev=="MSIC" && hktm.sid==123
+#~ISP_MSIC|@.ISP|*|% {--.isp_msic_idx}[iter] %| isp_msic_idx@DIM

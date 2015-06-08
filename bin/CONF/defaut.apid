@@ -1,0 +1,194 @@
+##############################################################################
+
+# APID configuration file for Sentinel 2 mission
+
+###############################################################################
+
+fic_apid
+
+# 60m bands configuration	
+#B1	
+0	defaut.ih_60m
+16	defaut.ih_60m
+32	defaut.ih_60m
+48	defaut.ih_60m
+64	defaut.ih_60m
+80	defaut.ih_60m
+256	defaut.ih_60m
+272	defaut.ih_60m
+288	defaut.ih_60m
+304	defaut.ih_60m
+320	defaut.ih_60m
+336	defaut.ih_60m
+	
+#B9	
+9	defaut.ih_60m
+25	defaut.ih_60m
+41	defaut.ih_60m
+57	defaut.ih_60m
+73	defaut.ih_60m
+89	defaut.ih_60m
+265	defaut.ih_60m
+281	defaut.ih_60m
+297	defaut.ih_60m
+313	defaut.ih_60m
+329	defaut.ih_60m
+345	defaut.ih_60m
+	
+#B10	
+10	defaut.ih_60m
+26	defaut.ih_60m
+42	defaut.ih_60m
+58	defaut.ih_60m
+74	defaut.ih_60m
+90	defaut.ih_60m
+266	defaut.ih_60m
+282	defaut.ih_60m
+298	defaut.ih_60m
+314	defaut.ih_60m
+330	defaut.ih_60m
+346	defaut.ih_60m
+	
+# 10m bands configuration	
+#B2	
+1	defaut.ih_10m
+17	defaut.ih_10m
+33	defaut.ih_10m
+49	defaut.ih_10m
+65	defaut.ih_10m
+81	defaut.ih_10m
+257	defaut.ih_10m
+273	defaut.ih_10m
+289	defaut.ih_10m
+305	defaut.ih_10m
+321	defaut.ih_10m
+337	defaut.ih_10m
+	
+#B3 	
+2	defaut.ih_10m
+18	defaut.ih_10m
+34	defaut.ih_10m
+50	defaut.ih_10m
+66	defaut.ih_10m
+82	defaut.ih_10m
+258	defaut.ih_10m
+274	defaut.ih_10m
+290	defaut.ih_10m
+306	defaut.ih_10m
+322	defaut.ih_10m
+338	defaut.ih_10m
+	
+#B4	
+3	defaut.ih_10m
+19	defaut.ih_10m
+35	defaut.ih_10m
+51	defaut.ih_10m
+67	defaut.ih_10m
+83	defaut.ih_10m
+259	defaut.ih_10m
+275	defaut.ih_10m
+291	defaut.ih_10m
+307	defaut.ih_10m
+323	defaut.ih_10m
+339	defaut.ih_10m
+	
+#B8	
+7	defaut.ih_10m
+23	defaut.ih_10m
+39	defaut.ih_10m
+55	defaut.ih_10m
+71	defaut.ih_10m
+87	defaut.ih_10m
+263	defaut.ih_10m
+279	defaut.ih_10m
+295	defaut.ih_10m
+311	defaut.ih_10m
+327	defaut.ih_10m
+343	defaut.ih_10m
+	
+# 20m bands configuration	
+#B5	
+4	defaut.ih_20m
+20	defaut.ih_20m
+36	defaut.ih_20m
+52	defaut.ih_20m
+68	defaut.ih_20m
+84	defaut.ih_20m
+260	defaut.ih_20m
+276	defaut.ih_20m
+292	defaut.ih_20m
+308	defaut.ih_20m
+324	defaut.ih_20m
+340	defaut.ih_20m
+	
+#B6	
+5	defaut.ih_20m
+21	defaut.ih_20m
+37	defaut.ih_20m
+53	defaut.ih_20m
+69	defaut.ih_20m
+85	defaut.ih_20m
+261	defaut.ih_20m
+277	defaut.ih_20m
+293	defaut.ih_20m
+309	defaut.ih_20m
+325	defaut.ih_20m
+341	defaut.ih_20m
+	
+#B7	
+6	defaut.ih_20m
+22	defaut.ih_20m
+38	defaut.ih_20m
+54	defaut.ih_20m
+70	defaut.ih_20m
+86	defaut.ih_20m
+262	defaut.ih_20m
+278	defaut.ih_20m
+294	defaut.ih_20m
+310	defaut.ih_20m
+326	defaut.ih_20m
+342	defaut.ih_20m
+	
+#B8a	
+8	defaut.ih_20m
+24	defaut.ih_20m
+40	defaut.ih_20m
+56	defaut.ih_20m
+72	defaut.ih_20m
+88	defaut.ih_20m
+264	defaut.ih_20m
+280	defaut.ih_20m
+296	defaut.ih_20m
+312	defaut.ih_20m
+328	defaut.ih_20m
+344	defaut.ih_20m
+	
+#B11	
+11	defaut.ih_20m
+27	defaut.ih_20m
+43	defaut.ih_20m
+59	defaut.ih_20m
+75	defaut.ih_20m
+91	defaut.ih_20m
+267	defaut.ih_20m
+283	defaut.ih_20m
+299	defaut.ih_20m
+315	defaut.ih_20m
+331	defaut.ih_20m
+347	defaut.ih_20m
+	
+#B12	
+12	defaut.ih_20m
+28	defaut.ih_20m
+44	defaut.ih_20m
+60	defaut.ih_20m
+76	defaut.ih_20m
+92	defaut.ih_20m
+268	defaut.ih_20m
+284	defaut.ih_20m
+300	defaut.ih_20m
+316	defaut.ih_20m
+332	defaut.ih_20m
+348	defaut.ih_20m
+
+fin

@@ -1,0 +1,26 @@
+COD||% len[0]-2
+#
+spare|Spare|?|1
+Scod|UChar|Coding style|1|*
+~partition_flag|UChar|flag|% bits(Scod,0,1)
+~sop_marker_flag|UChar|flag|% bits(Scod,1,1)
+~eph_marker_flag|UChar|flag|% bits(Scod,2,1)
+decomp_levels|UChar|Number of decomposition levels, dyadic decomposition|1
+prog_order_code|UChar|Progression order code|1
+~prog_order|String|Progression order|% choose(prog_order_code,"unknown","Layer-resolution-component-position","Resolution-layer-component-position","Resolution-position-component-layer","Position-component-resolution-layer","Component-position-resolution-layer")
+num_layers|UShort|Number of layers|2
+cb_exp_offset|UChar|Code-block width,height exponent offset value|1|2
+~cb_size|ULong|Code-block width,height|% 2^({--.cb_exp_offset}[iter]+2) %|2
+cb_style_word|UChar|Style of the code-block coding passes|1
+~select_arithm_bypass|UChar|1 if Selective arithmetic coding bypass|% bits(cb_style_word,0,1)
+~reset_ctxt|UChar|1 if Reset context probabilities on coding pass boundaries|% bits(cb_style_word,1,1)
+~pass_term|UChar|1 if Termination on each coding pass|% bits(cb_style_word,2,1)
+~vert_stripe_causal_ctxt|UChar|1 if Vertically stripe causal context|% bits(cb_style_word,3,1)
+~predict_term|UChar|1 if Predictable termination|% bits(cb_style_word,4,1)
+~seg_symbols|UChar|1 if Segmentation symbols are used|% bits(cb_style_word,5,1)
+transform|UChar|Wavelet transform used|1
+~transform_type|String|Wavelet transform used|% choose(transform,"unknown","9-7 irreversible wavelet transform","5-3 reversible wavelet transform")
+multi_comp_transf|UChar|Multiple component transform usage|1
+~multi_comp_transf_type|String|Multiple component transform usage|% choose(multi_comp_transf,"unknown","none","Reversible component transform on components 0, 1, 2","Irreversible component transform on components 0, 1, 2")
+#packet_part_size| TO BE COMPLETED
+

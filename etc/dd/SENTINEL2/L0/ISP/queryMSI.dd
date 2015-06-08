@@ -1,0 +1,16 @@
+QueryMSI|QueryMSI|0
+#
+# define a filter by defining either the apid, or any combination of band and/or detector.
+# lists of APIDs, or of bands and/or detectors are supported (items separated by commas)
+#
+~isp_idx|SelectMap|-.ISP|% qapid=option("#apid",""); qband=option("#band",""); qdet=option("#det",""); (qapid==""?((qband==""?(qdet==""?(option("#sort","")!=""?1:0):1):(","<<qband<<",")~("*,"<<(qband[0,0]=="B"?msiop.band_id:msiop.band_num)<<",*"))&&(qdet==""?1:(","<<qdet<<",")~("*,"<<msiop.detector_id<<",*"))):((","<<qapid<<",")~("*,"<<{prim_hdr.spkid.apid}<<",*")))
+~isp_sidx|SLong|*|% idx={--.isp_idx}[iter]; sort_type=option("#sort",""); reverse=sort_type[0,0]=="-"; sort_type=reverse?sort_type[1,100]:sort_type; sort_ssc=sort(.ISP[idx]prim_hdr.spkscnt.ssc,.ISP[idx]prim_hdr.spkid.apid)@reverse(reverse,reverse); sort_obt=sort(datestr(.ISP[idx]scnd_hdr.sys_anc_data.scene_obt.time,1980)iso)@reverse(reverse); sort_acq=sort(datestr(.ISP[idx]ext_hdr#dfep.acqt.time,2000)iso)@reverse(reverse); sort_band=sort(.ISP[idx]msiop.band_num,.ISP[idx]msiop.detector_id,.ISP[idx]prim_hdr.spkscnt.ssc)@reverse(reverse,reverse,reverse); sort_det=sort(.ISP[idx]msiop.detector_id,.ISP[idx]msiop.band_num,.ISP[idx]prim_hdr.spkscnt.ssc)@reverse(reverse,reverse,reverse); s=choose(strlookup(sort_type,"acq","obt","ssc","band","det"),iter,sort_acq,sort_obt,sort_ssc,sort_band, sort_det) ; {--.isp_idx}[s] %|isp_idx@DIM
+~isp_count|ULLong|*|isp_idx@DIM
+~ISP|@.ISP|*|% option("#sort","")==""?{--.isp_idx}[iter]:{--.isp_sidx}[iter] %| isp_idx@DIM
+~scene_changes|SelectMap|.ISP|% (scnd_hdr.sys_anc_data.scene_obt.time!=lastof(scnd_hdr.sys_anc_data.scene_obt.time,0))
+~SCENE_SEQ|DateTime|1980|% .ISP[{--.scene_changes}[iter]]scnd_hdr.sys_anc_data.scene_obt.time %| scene_changes@DIM
+~band_changes|SelectMap|.ISP|% (msiop.band_num!=lastof(msiop.band_num,-1))
+~BAND_SEQ|String|*|% .ISP[{--.band_changes}[iter]]msiop.band_id %| band_changes@DIM
+~detector_changes|SelectMap|.ISP|% (msiop.detector_id!=lastof(msiop.detector_id,-1))
+~DET_SEQ|UChar|*|% .ISP[{--.detector_changes}[iter]]msiop.detector_id %| detector_changes@DIM
+SCENES|@MSI_Scene|*|0|scene_changes@DIM

@@ -1,0 +1,6 @@
+gseTimeCuc|*|*
+#
+# OBT is referenced on 1980-01-06 at midnight
+~time|DateTime|1980|% (sec+subsec*2^-32)/24/3600+5
+sec|ULong|seconds|4
+subsec|ULong|2^-32 seconds|4

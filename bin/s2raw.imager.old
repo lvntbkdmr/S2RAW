@@ -1,0 +1,350 @@
+#!/bin/bash
+
+exe=`basename "$0"`
+
+# this to be completed to manage the logs
+function dolog
+{
+	echo "$@"
+}
+
+function usage 
+{
+	echo
+	echo "Usage:"
+	echo "$exe [ options ] pass1 pass2 ... passN"
+	echo "$exe -S <pass-name> [ options ] strip1 strip2 ... stripN"
+	echo "$exe -L <lum-folder-name> [ options ] strip1 strip2 ... stripN"
+	echo "$exe -I <s2rawgeo-file> [ options ] [ target1 target2 ... targetN ]"
+	echo
+	echo "Options:"
+	echo "  -c <config-file> load parameter config file"
+	echo "  -D <var>=<value> define config parameter from the command line"
+	echo "  -p               force pointing stage"
+	echo "  -u               force uncompression stage"
+	echo "  -i               force imager stage"
+	echo "  -k               force kmz stage"
+	echo "  -w               force warping stage"
+	echo "  -o               force publishing stage"
+	echo "  -a               do not archive"
+	echo "  -d               set debug mode"
+	exit 1
+} >&2
+
+[ $# -eq 0 ] && usage
+
+do_pointing=false
+do_uncompress=false
+do_imager=false
+do_kmz=false
+do_warpfr=false
+do_publish=false
+do_archive=true
+do_type=PASS
+
+while getopts "dpuikwoaS:L:I:D:c:" opt; do
+	case $opt in
+	d) set -x;;
+	c) . "$OPTARG";;
+	D) declare "$OPTARG";;
+	S) pass="$OPTARG"; do_type=STRIP;;
+	L) lum="$OPTARG"; do_type=LUM;;
+	I) s2rawgeo="$OPTARG"; do_type=IMAGE;;
+	p) do_pointing=true;;
+	u) do_uncompress=true;;
+	i) do_imager=true;;
+	k) do_kmz=true;;
+	w) do_warpfr=true;;
+	o) do_publish=true;;
+	a) do_archive=false;;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+[ $# -eq 0 ] && usage
+
+# make publish path absolute if not the case
+[ -n "$publish" ] && [ "${publish:0:1}" != "/" ] && publish="$PWD/$publish"
+
+[ -z "$gipps" ] && gipps="."
+[ -z "$targets" ] && targets="."
+[ -z "$targets" ] && output="."
+[ -z "$procs" ] && procs="."
+[ -z "$imager_format" ] && imager_format=tif
+
+function process_image
+{
+	local s2rawgeo="$1"; shift
+	local outdir=`dirname "$s2rawgeo"`/OUTPUT
+	[ ! -d "$outdir" ] && mkdir "$outdir"
+
+	local status=1
+
+	full_res=true
+	if [ $# -eq 0 ] ; then
+		full_res=false
+		set -- -
+		dolog CONTEXT STRIPIMAGE `basename "$s2rawgeo"`
+	else
+		dolog CONTEXT VIGNETTES `basename "$s2rawgeo"`" ($# targets found)"
+	fi
+
+
+	while [ -n "$1" ]; do
+
+		local -a target=()
+		local archive_folder="$outdir/"`basename "${s2rawgeo%&*}"`
+		local tmpdir="${s2rawgeo%&*}.tmp"
+		local target_name=""
+
+		if [ "$1" != "-" ]; then
+			local target_def=`grep 'target=' "$1" | tail -1 | cut -f2 -d\"`
+			target_name="${target_def%%;*}"
+			local target_file=`basename "$1" |cut -f1 -d=`
+			dolog CONTEXT "VIGNETTE@$target_file=$target_name" `basename "$s2rawgeo"`
+			target=( -P "$1" )
+
+			archive_folder="$archive_folder.@$target_file=$target_name"
+			tmpdir="${tmpdir%.*}.@$target_file=$target_name.tmp"
+		fi
+
+
+
+		local image_name=`basename "$archive_folder"`
+
+		local go_imager=$do_imager
+		local go_warpfr=$do_warpfr
+		local go_kmz=$do_kmz
+		local go_archive=$do_archive
+
+		# attempt to get back from archive
+		if [ -d "$archive_folder" ] ; then
+
+			# translate eventual previous versions to the new format
+			if [ -f "$archive_folder/$image_name.png" ] && [ "$imager_format" != png ]; then
+				if ! $do_imager; then
+					gdal_translate "$archive_folder/$image_name.png" "$archive_folder/$image_name.$imager_format"
+					ln "$archive_folder/$image_name.png.geo" "$archive_folder/$image_name.$imager_format.geo"
+				fi
+				rm "$archive_folder/$image_name.png" "$archive_folder/$image_name.png.geo"
+			fi
+			[ -f "$archive_folder/$image_name.$imager_format" ] || go_imager=true
+			[ `find "$archive_folder/warp/" -type f 2>/dev/null | wc -l` -gt 0 ] || go_warpfr=true
+			[ -f "$archive_folder/$image_name.kmz" ] || go_kmz=true
+
+			if $go_imager || $go_warpfr || $go_kmz ; then
+				[ -d "$tmpdir" ] && rm -rf "$tmpdir"
+				dolog STAGE RESTORE
+				cp -R "$archive_folder" "$tmpdir"
+				dolog STATUS $?
+			else
+				go_archive=false
+				tmpdir="$archive_folder"
+			fi
+
+		else
+			go_imager=true
+			go_warpfr=true
+			go_kmz=true
+			[ ! -d "$tmpdir" ] && mkdir "$tmpdir"
+		fi
+
+		shift
+
+		local image="$tmpdir/$image_name"
+
+
+		if $go_imager ; then
+
+			dolog STAGE IMAGER
+
+			# select the GIPPs
+			local nuctid="${image_name/#*NUC-/}"; nuctid="${nuctid%%.*}"
+
+			local VIEWDIR=`s2gipp_select "$gipps" "$image_name" VIEDIR`
+			local EQOB=`s2gipp_select "$gipps" "$image_name" R2EQOB "$nuctid"`
+			local EQOG=`s2gipp_select "$gipps" "$image_name" R2EQOG`
+
+			imager "$procs/$proc" -F "$s2rawgeo" "${target[@]}" \
+				-I "$procs/conf/no_overlap" -I "$procs/conf/coreg_fine" \
+				"${proc_params[@]}" -Poutname "$image_name" \
+				-FVIEWDIR "$VIEWDIR" -FEQOB "$EQOB" -FEQOG "$EQOG" \
+				-v -format $imager_format -d "$tmpdir"
+				# -max_lines 2000
+			dolog STATUS $?
+		fi
+
+		[ ! -f "$image.$imager_format" ] && dolog ABORT && continue
+
+		if $go_warpfr ; then
+			dolog STAGE WARPIMAGE
+
+			# work with tiff which is much more efficient for warpimage
+			if [ "$imager_format" != tif ]; then
+				gdal_translate "$image.$imager_format" -of GTiff "$image.tif"
+				ln "$image.$imager_format.geo" "$image.tif.geo"
+			fi
+
+			[ -d "$tmpdir/warp/" ] && rm -rf "$tmpdir/warp/"
+			mkdir "$tmpdir/warp"
+
+			local warp_res;
+			local frame_size
+			if $full_res; then
+				warp_res=".00009x.00009"
+				frame_size=0
+			else
+				warp_res=".00072x.00072"
+				frame_size=1152
+			fi
+	
+			warpimage \
+				-vout_dir="$tmpdir/warp" -vres="$warp_res" -vout_type=Byte -v format=tif -vpix_overlap=2 -vgcp_overlap=0 \
+				-vframe=1x$frame_size -v`cat "$image.warp"` "${warp_opts[@]}" "$image.tif"
+			dolog STATUS $?
+
+			if [ "$imager_format" != tif ]; then
+				rm -f "$image.tif" "$image.tif.geo"
+			fi
+		fi
+
+		if $go_kmz ; then
+			dolog STAGE KMZ
+			if $full_res; then
+				kmzoverlay -t "$image.xml" "$image" "$tmpdir/warp/"*.tif
+			else
+				[ -d "$tmpdir/kmz/" ] && rm -rf "$tmpdir/kmz/"
+				mkdir "$tmpdir/kmz"
+				warpimage -vformat=png -vout_dir="$tmpdir/kmz" -vframe=3750 -vareas=1 -vres=0.01x0.01 "${warp_opts_kmz[@]}" "$image.$imager_format"
+				kmzoverlay -t "$image.xml" "$image" "$tmpdir/kmz/"*.png
+				rm -rf "$tmpdir/kmz"
+			fi
+			dolog STATUS $?
+		fi
+
+
+		[ -n "$publish" ] && if $do_publish || [ ! -f "$publish/$image_name.tar" ] || [ ! -f "$publish/$image_name.kmz" ] ; then
+			dolog STAGE PUBLISH
+			export COPYFILE_DISABLE=true
+			status=0
+			cp "$image.kmz" "$publish/.kmz.$image_name" && mv "$publish/.kmz.$image_name" "$publish/$image_name.kmz" || status=1
+
+			cd "$tmpdir"
+			tar -c -v -f - \
+				--include="*.xml" --include="warp" --exclude "._*" --exclude "warp/*.geo" --exclude "warp/._*" * \
+				>"$publish/.tar.$image_name" && mv "$publish/.tar.$image_name" "$publish/$image_name.tar"
+			[ $status -eq 0 ] && status=$?
+			cd - >/dev/null
+			dolog STATUS $status
+		fi
+
+		if $go_archive; then
+			dolog STAGE ARCHIVE
+			local outname="$outdir/$image_name"
+			[ -d "$outname" ]&& rm -rf "$outname"
+			mv "$tmpdir" "$outname"
+			dolog STATUS $?
+		elif [ "$tmpdir" != "$archive_folder" ]; then
+			rm -rf "$tmpdir"
+		fi
+
+	done
+
+}
+
+function process_strip_lum
+{
+	local folder=$1; shift
+	local lum_folder="${folder/EXTRACT./LUM.}"
+
+	while [ -n "$1" ]; do
+		local s2rawgeo_file="$1"; shift
+		local dt_dir=`dirname "$s2rawgeo_file"`
+
+		dolog CONTEXT STRIPLUM `basename "$s2rawgeo_file"`"($folder)"
+
+		[ ! -d "$dt_dir/$folder" ] && dolog ABORT && continue
+
+		[ "$folder" == LUM ] || if $do_uncompress || [ ! -d "$dt_dir/$lum_folder" ]; then
+			dolog STAGE UNCOMPRESS
+			[ -d "$dt_dir/$lum_folder" ] || mkdir "$dt_dir/$lum_folder"
+			s2decomp -ro "$dt_dir/$lum_folder" -m 4 "$dt_dir/$folder"
+			dolog STATUS $?
+		fi
+
+		s2lumvoid -o "$dt_dir/$lum_folder" "$dt_dir"
+
+		local target_file="${lum_folder#*.}"
+		if [ "${lum_folder#*.}" == "$lum_folder" ] ; then
+			process_image "$s2rawgeo_file"'&image_folder='$lum_folder
+		else 
+			dolog STAGE TARGET
+			rm "$dt_dir/$folder/$target_file="* 2>/dev/null
+			imager "$procs/TARGET.proc" -F "$s2rawgeo_file" -P "$targets/$target_file" -Oprocess?target,target_geo_indices "$dt_dir/$folder/$target_file="
+			dolog STATUS $?
+			process_image "$s2rawgeo_file"'&image_folder='$lum_folder "$dt_dir/$folder/$target_file="*
+		fi
+	done
+
+}
+
+function process_strip
+{
+	local suffix="$1"; shift
+	while [ -n "$1" ]; do
+		local dt_dir="$1"
+		local s2rawgeo_file="$dt_dir/"`basename "$dt_dir"`".$suffix"
+		local s2rawgeo_fname=`basename "$s2rawgeo_file"`
+		dolog CONTEXT STRIP "$s2rawgeo_fname"
+
+		if $do_pointing || [ ! -f "$s2rawgeo_file" ]; then
+			dolog STAGE POINTING
+			s2pointing "$dt_dir/DEMUX/"*.SAD.*.bin `s2gipp_select "$gipps" "$s2rawgeo_fname" VIEDIR` \
+				"${isp_defines[@]}" -densify=4 -tref=UTC -msf=TXT "$dt_dir/DEMUX/"*.MSI.*.txt \
+				>"$s2rawgeo_file"
+			dolog STATUS $?
+		fi
+
+		process_strip_lum LUM "$s2rawgeo_file"
+
+		# process EXTRACT folders
+		local folder
+		for folder in "$dt_dir/EXTRACT."*; do
+			[ -d "$folder" ] || continue
+			process_strip_lum `basename "$folder"` "$s2rawgeo_file"
+		done
+
+		shift
+	done
+}
+
+function process_pass
+{
+	while [ -n "$1" ]; do
+		local pass=`basename "$1"`
+		dolog CONTEXT PASS "$pass"
+	
+		local dt_dir
+		for dt_dir in "$1/"*; do
+			[ -d "$dt_dir" ] || continue
+			process_strip "$pass" "$dt_dir"
+		done
+		shift
+	done
+}
+
+if [ "$do_type" == "PASS" ]; then
+	[ $# -eq 0 ] && usage
+	process_pass "$@"
+elif [ "$do_type" == "STRIP" ]; then
+	[ $# -eq 0 ] && usage
+	process_strip "$pass" "$@"
+elif [ "$do_type" == "LUM" ]; then
+	[ $# -eq 0 ] && usage
+	process_strip_lum "$lum" "$@"
+elif [ "$do_type" == "IMAGE" ]; then
+	process_image "$s2rawgeo" "$@"
+fi
+
+

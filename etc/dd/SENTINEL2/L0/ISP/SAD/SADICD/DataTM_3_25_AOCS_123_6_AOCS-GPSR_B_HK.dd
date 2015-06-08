@@ -1,0 +1,40 @@
+DataTM_3_25_AOCS_123_6_AOCS-GPSR_B_HK|S2 SAD SRDB=ASY_ANC32123 APID=182: AOCS-GPSR B HK TM(3,25,PRID=AOCS SID=123 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+GPSB_HK_W02|UShort|GPSB_HOUSEKEEPING_WORD_02 SRDB=AST18079|2|*
+~FE_TEMP|UChar|R_2F_F_frontend_temperature ** Duplicated from GST0B596 ** SRDB=ASTDB596|% bits(GPSB_HK_W02,8,8)
+~ID|UChar|internal_use ** Duplicated from GST0B597 ** SRDB=ASTDB597|% bits(GPSB_HK_W02,0,8)
+GPSB_HK_W03|UShort|GPSB_HOUSEKEEPING_WORD_03 SRDB=AST18080|2|*
+~SN|UChar|Serial_Number__not_used_ ** Duplicated from GST0B598 ** SRDB=ASTDB598|% bits(GPSB_HK_W03,12,4)
+data_valid_flag*|UChar|___UINT 4 1 ASTDB599 V data_valid_flag* * Duplicated from GST0B599 ** SRDB=V|0|*
+receiver_mode|UChar|** Duplicated from GST0B59A ** SRDB=R_MODE|0|*
+~NOF_RECORD|UChar|Nof_records_in_data_block ** Duplicated from GST0B59B ** SRDB=ASTDB59B|% bits(receiver_mode,-16,8)
+~AST18081|UChar|GPSB_HK_W04 GPSB_HOUSEKEEPING_WORD_04 SRDB=16|% bits(receiver_mode,-9,5)
+~SV_ACQ|UChar|number_of_SVs_being_acquired **Duplicated from GST0B59C ** SRDB=ASTDB59C|% bits(receiver_mode,-4,4)
+~SV_SF_TRK|UChar|Nof_SVs_being_trackeg_in_single_freq_mode **Duplicated from GST0B59D ** SRDB=ASTDB59D|% bits(receiver_mode,-8,4)
+~SV_MF_TRK|UChar|Nof_SVs_being_trackeg_in_multi_freq_mode ** Duplicated from GST0B59E ** SRDB=ASTDB59E|% bits(receiver_mode,-12,4)
+~SV_PVT|UChar|Nof_SVs_used_for_PVT ** Duplicated from GST0B59F ** SRDB=ASTDB59F|% bits(receiver_mode,-16,4)
+~AST18082|UChar|GPSB_HK_W05 GPSB_HOUSEKEEPING_WORD_05 SRDB=16|% bits(receiver_mode,-12,7)
+~P|UChar|PROM_EDAC_Single_bit_error ** Duplicated from GST0B5A0 ** SRDB=ASTDB5A0|% bits(receiver_mode,-1,1)
+~NSM|UChar|Navigation_solution_mode ** Duplicated from GST0B5A1** SRDB=ASTDB5A1|% bits(receiver_mode,-4,3)
+~E|UChar|SRAM_EDAC_single_bit_error ** Duplicated from GST0B5A2 ** SRDB=ASTDB5A2|% bits(receiver_mode,-5,1)
+~CNT|UChar|Corrected_Reg_file_error ** Duplicated from GST0B5A3 ** SRDB=ASTDB5A3|% bits(receiver_mode,-8,3)
+~ITE|UChar|Instr_cache_tag_error_counter ** Duplicated from GST0B5A4 ** SRDB=ASTDB5A4|% bits(receiver_mode,-10,2)
+~IDE|UChar|Instr_cache_data_error_counter ** Duplicated from GST0B5A5 ** SRDB=ASTDB5A5|% bits(receiver_mode,-12,2)
+~DTE|UChar|Data_cache_tag_error_counter ** Duplicated from GST0B5A6 ** SRDB=ASTDB5A6|% bits(receiver_mode,-14,2)
+~DDE|UChar|Data_cache_data_error_counter ** Duplicated from SRDB=ASTDB5A7|% bits(receiver_mode,-16,2)
+GPSB_HK_W06|UShort|GPSB_HOUSEKEEPING_WORD_06 SRDB=AST18083|2|*
+~TC_DISC|UChar|Discarded_TC_packet_counter ** Duplicated from GST0B5A8 ** SRDB=ASTDB5A8|% bits(GPSB_HK_W06,8,8)
+~TM_DISC|UChar|Discarded_TM_packet_counter ** Duplicated from GST0B5A9 ** SRDB=ASTDB5A9|% bits(GPSB_HK_W06,0,8)
+TXBUF_OCC|UShort|GPSB_HOUSEKEEPING_WORD_07 / Transmit_buffer_occupancy SRDB=AST18084|2|*
+DUMP_STAT|UShort|GPSB_HOUSEKEEPING_WORD_08 / Memory_Dump_status SRDB=AST18085|2|*
+CPU_LOAD|UShort|GPSB_HOUSEKEEPING_WORD_09 / Processor_load SRDB=AST18086|2|*
+GPSB_HK_W10|UShort|GPSB_HOUSEKEEPING_WORD_10 SRDB=AST18087|2|*
+~CK|UChar|clock_source ** Duplicated from GST0B5AD ** SRDB=ASTDB5AD|% bits(GPSB_HK_W10,15,1)
+~N_U_3|UChar|not_used ** Duplicated from GST0B5AE ** SRDB=ASTDB5AE|% bits(GPSB_HK_W10,12,3)
+~D|UChar|MilBus_I_2F_F_EDAC_double_bit_error ** Duplicated from GST0B5AF ** SRDB=ASTDB5AF|% bits(GPSB_HK_W10,11,1)
+~M|UChar|MilBus_protocol_selection_flag* * Duplicated from GST0B5B0 ** SRDB=ASTDB5B0|% bits(GPSB_HK_W10,10,1)
+~I|UChar|not_used ** Duplicated from GST0B5B1 ** SRDB=ASTDB5B1|% bits(GPSB_HK_W10,9,1)
+~L|UChar|MilBus_I_2F_F_EDAC_single_bit_error ** Duplicated from GST0B5B2 ** SRDB=ASTDB5B2|% bits(GPSB_HK_W10,8,1)
+~PRECNT|UChar|MilBus_transient_protocol_error ** Duplicated from GST0B5B3 ** SRDB=ASTDB5B3|% bits(GPSB_HK_W10,0,8)
+GPSB_HK_W11|UShort|GPSB_HOUSEKEEPING_WORD_11 SRDB=AST18088|2|*

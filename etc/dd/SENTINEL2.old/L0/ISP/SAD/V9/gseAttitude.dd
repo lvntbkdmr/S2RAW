@@ -1,0 +1,5 @@
+gseAttitude|*|0
+#
+# OBT is referenced on 1980-01-06 at midnight
+~time|DateTime|1980|% {-.--.gseTimeCuc}[iter] %|*
+~quaternion|Double|*|% {-.--.gseAttEstQuaternion}[iter][iter1] %|4

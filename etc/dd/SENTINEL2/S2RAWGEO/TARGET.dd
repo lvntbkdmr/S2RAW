@@ -1,0 +1,8 @@
+TARGET|S2 pointing to Target|*
+#
+~targets|Double|*|% targets=vector(strcount(option("#targets",""),"|"),3) [words(words(option("#targets",""),"|",$1+1),";",$2+1)]; targets[iter1,iter] %|% strcount(option("#targets",""),"|"),3
+~target_check|UChar|*|% det=option("#target_det",.SCENES.0.ISP.0.msiop.detector_id)-1; band=option("#target_band",.SCENES.0.ISP.0.msiop.band_num); band_idx={.S2RAWGEO.BAND}@lookup(band,"band_num"); lat=.S2RAWGEO.BAND[band_idx]lat[iter1][det][0]; lon=.S2RAWGEO.BAND[band_idx]lon[iter1][det][0];tlon=.targets[iter]{0};tlat=.targets[iter]{1};text=.targets[iter]{2};text=isnan(text)?option("#target_ext",5):text; drad=acos(sin(pi/180*tlat)*sin(pi/180*lat)+cos(pi/180*tlat)*cos(pi/180*lat)*cos(pi/180*(lon-tlon))); dkm=drad*180/pi*1.852*60 ; drad_max=((2548*10/2*sqrt(2)/1000)+text)/180*pi/1.852/60; drad<=drad_max %|% .S2RAWGEO.LINE_TIME@DIM,.targets@DIM
+~target_match|SelectMap|.SCENES|% scene_geo_idx=.S2RAWGEO.LINE_TIME@lookup(round(86400*(scene_obt.time+((19-option("#lsec",35))/86400-datenum("2000-01-01",1980)))),"round(86400*{})"); match=scene_geo_idx<0?0:.target_check[scene_geo_idx]@lookup(1)>=0 
+~TARGET_SCENES|@.SCENES|*|% .target_match[iter] %| .target_match@DIM
+~TARGET_SCENE_IDS|String|*|% time=datestr(.SCENES[.target_match[iter]]scene_obt.time+(19-option("#lsec",35))/86400,1980)ISO; id=time[0,3]<<time[5,6]<<time[8,12]<<time[14,15]<<time[17,18] %|.target_match@DIM
+#~target_fname|String|*|% prefix=words(#filename,".",0,2); ext=#filename[strlen(#filename)-11,-1]; TARGET_SCENE_IDS@DIM?prefix<<"."<<TARGET_SCENE_IDS[0]<<"_"<<TARGET_SCENE_IDS[TARGET_SCENE_IDS@DIM-1]<<ext:null

@@ -1,0 +1,13 @@
+s2rawgeo|s2rawgeo|*|Local
+#
+header|@/CQFD_Header|*|*
+num_bands|UShort|*|*
+num_scenes|ULong|*|*
+tpdf|UShort|Tie Point Densification Factor|*
+num_margin_scenes|UShort|*|*
+num_tp_lines|ULong|*|*
+num_tp_cols|UShort|*|*
+LINE_TIME|DateTime|2000|*|num_tp_lines
+BAND|@BandImage|*|*|num_bands
+~is_fr|UChar|*| b2_idx=BAND@lookup("B2","band_id"); IMAGE_FOLDER.IMAGE_DATA[IMAGE_FOLDER.IMAGE_DATA@lookup("B2","band_id")]{LUM.num_pixels}==BAND[b2_idx]num_pixels_fr
+~IMAGE_FOLDER|Auxiliary|/S2RAWGEO/ImageFolder|% option("#image_folder","LUM")<<"/*.lum"<<'::'<<option("#image_driver","basic") %|

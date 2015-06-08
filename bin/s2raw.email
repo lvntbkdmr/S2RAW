@@ -1,0 +1,79 @@
+#!/bin/bash
+
+exe=`basename "$0"`
+
+function usage
+{
+	echo "Usage: $exe [ options ] <target-file1> <target-file2> ..."
+	echo "Options:"
+	echo "  -c <email-address> add recipient in CC of the email"
+	echo "  -b <email-address> add recipient in BCC of the email"
+	echo "  -d                 delete the input target-file(s) after processing"
+	echo "  -t                 test mode (send to local mailbox)"
+	exit 1
+} >&2
+
+function process_email
+{
+	local email_def="$1"
+	local target_name target_lon target_lat target_ext_m target_time target_email target_long_name
+	. "$email_def"
+
+	[ -f "${email_def%.*}@"*.jpg ] || return 1
+	[ -n "$target_email" ] && send=true
+	$send || return 2
+
+	$test_mode && target_email=""
+
+	[ -n "$target_email" ] || target_email="$USER@localhost"
+
+
+	local fname=`basename "$email_def"`
+	local sat_unit="${fname:2:1}"
+	[ -z "$target_long_name" ] && target_long_name="$target_name"
+
+	local ew=E
+	[ "${target_lon:0:1}" == "-" ] && ew=W && target_lon=${target_lon:1}
+	local ns=N
+	[ "${target_lat:0:1}" == "-" ] && ns=S && target_lat=${target_lat:1}
+
+	local target_pos=`printf "%7.3f°%s %6.3f°%s" "$target_lon" $ew "$target_lat" $ns`
+
+	printf 'Enjoy!\n\n\n - The Sentinel-2 dream team at ESA/ESRIN -\n' | mutt \
+		"${mutt_args[@]}" \
+		-s "Sentinel-2$sat_unit just spotted your location ($target_long_name,$target_pos) at $target_time UTC" \
+		-a "${email_def%.*}@"*.jpg \
+		-a "${email_def%.*}.xml" \
+		"$target_email" \
+	&& $delete_flag && rm "$email_def" "${email_def%.*}@"*.jpg
+	
+}
+
+
+declare -a mutt_args=()
+delete_flag=false
+send=false
+test_mode=false
+
+while getopts "c:b:dt" opt; do
+case $opt in
+	c) mutt_args=( "${mutt_args[@]}" -c "$OPTARG" ); send=true;;
+	b) mutt_args=( "${mutt_args[@]}" -b "$OPTARG" ); send=true;;
+	d) delete_flag=true;;
+	d) test_mode=true;;
+esac
+done
+
+shift $(($OPTIND - 1))
+
+[ $# -eq 0 ] && usage
+
+while [ -n "$1" ]; do
+	if [ -d "$1" ]; then
+		for target_file in "$1/"*.target; do process_email "$target_file" || exit $?; done 
+	else
+		process_email "$1" || exit $?
+	fi
+	shift
+done
+

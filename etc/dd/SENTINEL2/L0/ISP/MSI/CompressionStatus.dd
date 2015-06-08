@@ -1,0 +1,12 @@
+S2 MSI ISP Compression Status|*|*
+#
+~modop|UChar|Status of the current compression|% bits(tmp_word,13,3)
+~reserved_1|UChar|3-bits 110 |% bits(tmp_word,10,3)
+~bypnuc|UChar|True if Non-Uniformity Correction Bypass|% bits(tmp_word,9)
+~reserved_2|UChar|2-bits 10|% bits(tmp_word,7,2)
+~sse|UChar|True if Strip Sequence Error detected during a strip|% bits(tmp_word,6)
+~gpi|UChar|Status General Purpose Input|% bits(tmp_word,5)
+~reserved_3|UChar|1-bit 0|% bits(tmp_word,4)
+~reserved_4|UChar|2-bits 00|% bits(tmp_word,2,2)
+~wmode|UChar|WICOM Mode|% bits(tmp_word,0,2)
+tmp_word|UShort|tmp buffer MMM110B10SG000WW|*

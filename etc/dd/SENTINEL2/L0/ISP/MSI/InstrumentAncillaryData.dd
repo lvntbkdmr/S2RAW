@@ -1,0 +1,18 @@
+S2 MSI ISP Instrument Ancillary Data|*|12
+#
+inttime|UChar|FEE Integration Time|*
+fee_health_status|UChar|1 bit per FEEM|*
+~fpatm|UShort|FPA Temperature Thermal Control|% bits(tmp_word1,12,12)
+~fpatr|UShort|FPA Temperature Monitoring|% bits(tmp_word1,0,12)
+spare1|Spare|*|1|*|5
+cratio|UChar|Compression Ratio WICOM|*|
+~cal_cratio|Double|Calibrated Compression Ratio WICOM|% 300/cratio
+~bitrate|Double|Compression Bit-Rate|% 0.04*cratio
+~nuctid|UChar|NUC Table ID|% bits(tmp_word2,6,10)
+~vpm_tmode|UChar|Video Channel Source Select|% bits(tmp_word2,5)
+~vpm_sync|UChar|Test clock synchronisation to the sync of the 10m band (0 free running, 1 syncro) |% bits(tmp_word2,4)
+~vpm_noise|UChar|Noise Insertion in Test Mode|% bits(tmp_word2,3)
+~vpm_tdi_mode|UChar|TDI mode|% bits(tmp_word2,1,2)
+spare2|Spare|*|3|*|9
+tmp_word1|ULong|tmp buffer 12-bits + fpatm 12-bits fpatr|3|*|2
+tmp_word2|UShort|tmp buffer NNNNNNNNNNTSNTTS |2|*|7

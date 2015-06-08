@@ -1,0 +1,16 @@
+DataTM_3_25_AOCS_122_6_AOCS-TM2|S2 SAD SRDB=ASY_ANC32122 APID=182: AOCS-TM2 TM(3,25,PRID=AOCS SID=122 PCAT=6)|*
+#
+sid|UChar|SID Code|1
+AO_oopIsValid|UChar|AOCS OOP Determination Validity Flag SRDB=AST82393|1|*
+AO_oopQualId|UChar|AOCS OOP Quality Information SRDB=AST82394|1|*
+AO_oopPos_J_X|Double|AOCS OOP Propagated position in J frame (X) SRDB=AST82395|8|*
+AO_oopPos_J_Y|Double|AOCS OOP Propagated position in J frame (Y) SRDB=AST82396|8|*
+AO_oopPos_J_Z|Double|AOCS OOP Propagated position in J frame (Z) SRDB=AST82397|8|*
+AO_oopVel_J_X|Double|AOCS OOP Propagated velocity in J frame (X) SRDB=AST82398|8|*
+AO_oopVel_J_Y|Double|AOCS OOP Propagated velocity in J frame (Y) SRDB=AST82399|8|*
+AO_oopVel_J_X|Double|AOCS OOP Propagated velocity in J frame (Z) SRDB=AST82400|8|*
+AO_oopOrbitAng|Double|AOCS OOP Orbit Angle SRDB=AST82401|8|*
+AO_oopOrbitNum|ULong|AOCS OOP Orbit Number SRDB=AST82402|4|*
+AO_oopTimeSec|Double|AOCS OOP Timestamp of Propagated Output Data SRDB=AST82403|8|*
+AO_oopGpsMjdUT1d|Double|AOCS OOP UT1 as modified julian date (day) SRDB=AST82404|8|*
+AO_oopGpsMjdUT1f|Double|AOCS OOP UT1 as modified julian date (fraction) SRDB=AST82405|8|*

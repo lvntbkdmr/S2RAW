@@ -1,0 +1,506 @@
+// Description:
+//	Input parameters:
+//	- Time queries supported via -sensing_start, -sensing_stop
+
+//	Output:
+//	- Browse image	<product-name>.jpg
+//
+//	Return Status:
+//	- (0)  on success
+//	- (-1) (255) on error
+//
+//	Processing performed:
+//	Generates a browse image 
+//
+//	
+// 	name of processor:
+
+filename=#filename;
+
+pipo={tpdf};
+//toto={BAND}@lookup("B2","band_id")band_id;//num_det_pixels_fr;
+
+	proc="L0QL";
+	proc_version="1.0";
+	proc_time=datestr(datenum(null))ISO;
+
+	datatake=words(filename,".",0);
+	sat_unit=datatake[2,2];
+	msi_mode=words(filename,".",1);
+	nuc_table_id=words(filename,".",2);
+	cgs=words(filename,".",3);
+
+// define constants
+	// vernal equinox on 2000-03-20 at 7:25 UTC
+	vernal_equinox=datenum("20-MAR-2000 07:25:00",2000);
+	tropical_year=365.242190;
+	ecliptic_angle=23.5;
+
+	earth_radius=6363885;
+	earth_rotation=2*pi/(24*3600); // in rad/s
+
+
+// Input Parameters
+
+//	nlin_corr=option("nlin_corr",0);
+	det_overlap=option("det_overlap",0);
+
+// GIPP VIEWDIR processing to derive image pixel association to detector image space 
+
+	num_det_pixels_fr=2548;//{BAND.band_id=B2.num_det_pixels_fr}; // 2548 for 10m bands
+	num_det_pixels={BAND.band_id=B2.num_det_pixels}; // 324 for the quick look out of decompression
+	num_det_pixels=num_det_pixels?num_det_pixels:324;
+
+	sampling=2^ceil(log({BAND.band_id=B2.num_det_pixels_fr}/{BAND.band_id=B2.num_det_pixels})/log(2)); // 8
+
+	// the number of void pixels in the quicklook at the beginning and end of a quicklook line
+	ql_col_offset=sampling==1?0:((num_det_pixels-floor(num_det_pixels_fr/sampling))/2);
+
+	// accordingly adjust num_det_pixels to equal the number of complete groups of 'sampling' full resolution pixels
+	num_det_pixels=num_det_pixels-2*ql_col_offset;
+	num_det_pixels_fr=num_det_pixels*sampling;
+
+	det_ac_pt=alias("VIEWDIR.BAND_VIEWDIR.band_id=B2.VIEWDIR_TDI.0.TAN_PSI_Y");
+
+	half_inter_det=75;
+	det_pix_range_fr=vector(12,2) @exec(
+	      $2==0
+	      ?( // minimum
+	         det_overlap?0:(
+	            $1<6
+	            ?($1?half_inter_det:0)
+	            :(det_ac_pt[$1]@minlookup(det_ac_pt[$1-1][num_det_pixels_fr-1-half_inter_det])+1)
+                 )
+	      )
+	      :( // maximum
+	         det_overlap?(num_det_pixels_fr-1):(
+	            $1<6
+	            ?(det_ac_pt[$1]@maxlookup(det_ac_pt[$1+1][half_inter_det])-1)
+	            :(num_det_pixels_fr-1-($1==11?0:half_inter_det))
+	         )
+	      )
+	);
+
+	det_numpix_fr=vector(12) @exec(det_pix_range_fr[$1,1]-det_pix_range_fr[$1,0]+1);
+
+	det_pix1_canvas_fr=vector(12) @exec(
+	    ($1>0?det_numpix_fr[0]:0)
+	   +($1>1?det_numpix_fr[1]:0)
+	   +($1>2?det_numpix_fr[2]:0)
+	   +($1>3?det_numpix_fr[3]:0)
+	   +($1>4?det_numpix_fr[4]:0)
+	   +($1>5?det_numpix_fr[5]:0)
+	   +($1>6?det_numpix_fr[6]:0)
+	   +($1>7?det_numpix_fr[7]:0)
+	   +($1>8?det_numpix_fr[8]:0)
+	   +($1>9?det_numpix_fr[9]:0)
+	   +($1>10?det_numpix_fr[10]:0)
+	   +($1>11?det_numpix_fr[11]:0)
+	);
+
+	canvas_numpix_fr=const(det_pix1_canvas_fr[11]+det_numpix_fr[11]);
+
+	// from canvas pixel to detector in fr space
+	detector_fr=vector(canvas_numpix_fr) @exec(
+	   minlookup($1,
+	      det_pix1_canvas_fr[0],
+	      det_pix1_canvas_fr[1],
+	      det_pix1_canvas_fr[2],
+	      det_pix1_canvas_fr[3],
+	      det_pix1_canvas_fr[4],
+	      det_pix1_canvas_fr[5],
+	      det_pix1_canvas_fr[6],
+	      det_pix1_canvas_fr[7],
+	      det_pix1_canvas_fr[8],
+	      det_pix1_canvas_fr[9],
+	      det_pix1_canvas_fr[10],
+	      det_pix1_canvas_fr[11]
+	   )
+	);
+
+	// from canvas pixel to detector pixel in fr space
+	det_pix_fr=vector(detector_fr)
+	   @exec($1-det_pix1_canvas_fr[$0]+det_pix_range_fr[$0,0])
+	;
+
+
+	// define number of canvas image columns
+	// and set canvas column numbers canvas_pix and canvas_pix_fr respectively in sampled and fr pixel units
+	canvas_pix=columns(canvas_numpix_fr/sampling);
+	canvas_pix_fr=floor((canvas_pix+.5)*sampling);
+
+	// the detector to which the fr pixel belongs
+	det=detector_fr[canvas_pix_fr];
+	det_odd=det%2;
+
+	// the detector pixel number in sampled space
+	det_pix=round(det_pix_fr[canvas_pix_fr]/sampling-0.5);
+	det_pix_reverse=num_det_pixels-det_pix-1;
+
+
+// coarse registration offsets
+
+	b2e_offset=0/sampling;
+	b3e_offset=option("b3e_offset",-336)/sampling;
+	b4e_offset=option("b4e_offset",-640)/sampling;
+
+	b2o_offset=option("b2o_offset",1304)/sampling;
+	b3o_offset=option("b3o_offset",1304+304)/sampling;
+	b4o_offset=option("b4o_offset",1304+640)/sampling;
+
+	corrective_offset=-min(0,b2e_offset,b2o_offset,b3e_offset,b3o_offset,b4e_offset,b4o_offset);
+	corrective_range=max(b2e_offset,b2o_offset,b3e_offset,b3o_offset,b4e_offset,b4o_offset)+corrective_offset;
+
+	b2e_offset=b2e_offset+corrective_offset;
+	b2o_offset=b2o_offset+corrective_offset;
+	b3e_offset=b3e_offset+corrective_offset;
+	b3o_offset=b3o_offset+corrective_offset;
+	b4e_offset=b4e_offset+corrective_offset;
+	b4o_offset=b4o_offset+corrective_offset;
+
+
+// input data
+
+	b2det=vector(12) @exec(
+		raster(
+			"BAND.band_id=B2.image_data."<<$1,"",
+			// apply line coregistration offset,detector/image offset and reverse reading for odd detectors
+			1,($1%2?-1:1),
+			($1%2?b2o_offset:b2e_offset)+ceil(LINE_TIME@maxlookup({BAND.band_id=B2.first_scene}[$1])/tpdf-num_margin_scenes)*16*144/sampling,
+			(det_pix1_canvas_fr[$1]-det_pix_range_fr[$1,0]+($1%2?num_det_pixels_fr-1:0))/sampling-($1%2?-1:1)*ql_col_offset
+		) @scale(2^11)
+	);
+
+	b3det=vector(12) @exec(
+		raster(
+			"BAND.band_id=B3.image_data."<<$1,"",
+			// apply line coregistration offset,detector/image offset and reverse reading for odd detectors
+			1,($1%2?-1:1),
+			($1%2?b3o_offset:b3e_offset)+ceil(LINE_TIME@maxlookup({BAND.band_id=B3.first_scene}[$1])/tpdf-num_margin_scenes)*16*144/sampling,
+			(det_pix1_canvas_fr[$1]-det_pix_range_fr[$1,0]+($1%2?num_det_pixels_fr-1:0))/sampling-($1%2?-1:1)*ql_col_offset
+		) @scale(2^11)
+	);
+
+	b4det=vector(12) @exec(
+		raster(
+			"BAND.band_id=B4.image_data."<<$1,"",
+			// apply line coregistration offset,detector/image offset and reverse reading for odd detectors
+			1,($1%2?-1:1),
+			($1%2?b4o_offset:b4e_offset)+ceil(LINE_TIME@maxlookup({BAND.band_id=B4.first_scene}[$1])/tpdf-num_margin_scenes)*16*144/sampling,
+			(det_pix1_canvas_fr[$1]-det_pix_range_fr[$1,0]+($1%2?num_det_pixels_fr-1:0))/sampling-($1%2?-1:1)*ql_col_offset
+		) @scale(2^11)
+	);
+
+
+	canvas_lines=max(b2det[0]@lines,b2det[1]@lines,b3det[0]@lines,b3det[1]@lines,b4det[0]@lines,b4det[1]@lines)+corrective_range;
+
+	lines_per_tp=16*144/sampling/tpdf;
+	pixels_per_tp=({BAND.band_id=B2.num_det_pixels_fr}-1)/(num_tp_cols-1);
+
+	margin_lines=round(lines_per_tp*{tpdf}*({num_margin_scenes}+0));
+	sampling_shift=0.5*(1-1/sampling);
+
+	tp_line_offset=b2e_offset-margin_lines-sampling_shift;
+	even_odd_shift=b2o_offset-b2e_offset;
+
+	lon=raster("BAND.band_id=B2.lon","",
+	   lines_per_tp, pixels_per_tp,tp_line_offset, 0
+	) @buffer(abs(even_odd_shift)) @cyclic(-180,180);
+
+	lat=raster("BAND.band_id=B2.lat","",
+	   lines_per_tp, pixels_per_tp,tp_line_offset, 0
+	) @buffer(abs(even_odd_shift));
+
+	sun_el=raster("BAND.band_id=B2.sun_el","",
+	   lines_per_tp, pixels_per_tp,tp_line_offset, 0
+	) @buffer(abs(even_odd_shift));
+
+
+// line selector for time queries
+
+	line_sensing_time=raster("LINE_TIME","",lines_per_tp,1,tp_line_offset,0);
+
+	// get time interval (defaulting to the complete one) with default 5 seconds margin
+	sensing_start_param=option("sensing_start","");
+	sensing_stop_param=option("sensing_stop","");
+
+
+	// get the start/stop line indices
+	sensing_start=sensing_start_param==""?nan:datenum(sensing_start_param,2000);
+	sensing_stop=sensing_stop_param==""?nan:datenum(sensing_stop_param,2000);
+
+	sensing_start_line=LINE_TIME@maxlookup(sensing_start,"");
+	sensing_start_line=isnan(sensing_start)?0:(tp_line_offset+lines_per_tp*(sensing_start_line-(LINE_TIME[sensing_start_line]-sensing_start)/(3.6/86400/tpdf)));
+
+	sensing_stop_line=LINE_TIME@minlookup(sensing_stop,"");
+	sensing_stop_line=isnan(sensing_stop)?canvas_lines-1:(sensing_stop_line<0?0:(
+	   tp_line_offset+lines_per_tp*(sensing_stop_line-(LINE_TIME[sensing_stop_line]-sensing_stop)/(3.6/86400/tpdf)))
+	);
+
+	l=lines(sensing_start_line,sensing_stop_line);
+
+	line_sensing_time_str=keep(datestr(line_sensing_time,2000)ISO,canvas_pix@index>0);
+	sensing_start_str=keep(line_sensing_time_str,(l!=l@first)||(canvas_pix!=canvas_pix@first));
+
+
+// detector pixel selection
+
+	b2=b2det[det];
+	b3=b3det[det];
+	b4=b4det[det];
+
+// geolocation processing
+
+	tp_line=l-(det_odd?even_odd_shift:0);
+	tp_col=det_pix_fr[canvas_pix_fr]-0.5;
+
+	target_lon=option("tlon",lon[tp_line,tp_col-det_pix,det]ABS);
+	target_lat=option("tlat",lat[tp_line,tp_col-det_pix,det]ABS);
+
+	lon=lon[tp_line,tp_col,det]ABS;
+	lat=lat[tp_line,tp_col,det]ABS;
+	sun_el=sun_el[tp_line,tp_col,det]ABS;
+
+        pixel_target_distance_rad=
+           acos(
+              sin(pi/180*target_lat)*sin(pi/180*lat)
+             +(cos(pi/180*target_lat)*cos(pi/180*lat)*cos(pi/180*(lon-target_lon)))
+           );
+
+        pixel_target_distance_m=
+           pixel_target_distance_rad
+           *180/pi*1.852*60*1000
+           ;
+
+//	mc_bands=vector(MER_RAC_AX.GADS_Corr_Control_Params.0.mc_bands);
+
+//	wt_ob_spa_temp_relax=vector(MER_RAC_AX.GADS_Corr_Control_Params.0.wt_ob_spa_temp_relax);
+
+//	lut_step_b2=mc_bands[1]*16*wt_ob_spa_temp_relax[1];
+//	lut_step_b3=mc_bands[2]*16*wt_ob_spa_temp_relax[2];
+//	lut_step_b5=mc_bands[4]*16*wt_ob_spa_temp_relax[4];
+//	lut_step_b7=mc_bands[6]*16*wt_ob_spa_temp_relax[6];
+//	lut_step_smr=mc_bands[15]*16*wt_ob_spa_temp_relax[15];
+
+//	nlin=vector(MER_RAC_AX.ADS_Non_Linearity_LUT_matrix);
+
+//	b2_lut=b2/lut_step_b2;
+//	b2_lut_frac=b2-floor(b2_lut)*lut_step_b2;
+//	b2_c=
+//	   nlin[det,1,floor(b2_lut)]*b2_lut_frac
+//	   +nlin[det,1,ceil(b2_lut)]*(lut_step_b2-b2_lut_frac);
+
+//	b3_lut=b3/lut_step_b3;
+//	b3_lut_frac=b3-floor(b3_lut)*lut_step_b3;
+//	b3_c=
+//	   nlin[det,2,floor(b3_lut)]*b3_lut_frac
+//	   +nlin[det,2,ceil(b3_lut)]*(lut_step_b3-b3_lut_frac);
+
+//	b5_lut=b5/lut_step_b5;
+//	b5_lut_frac=b5-floor(b5_lut)*lut_step_b5;
+//	b5_c=
+//	   nlin[det,4,floor(b5_lut)]*b5_lut_frac
+//	   +nlin[det,4,ceil(b5_lut)]*(lut_step_b5-b5_lut_frac);
+
+//	b7_lut=b7/lut_step_b7;
+//	b7_lut_frac=b7-floor(b7_lut)*lut_step_b7;
+//	b7_c=
+//	   nlin[det,6,floor(b7_lut)]*b7_lut_frac
+//	   +nlin[det,6,ceil(b7_lut)]*(lut_step_b7-b7_lut_frac);
+
+//	smr_lut=smr/lut_step_smr;
+//	smr_lut_frac=smr-floor(smr_lut)*lut_step_smr;
+//	smr_c=
+//	   nlin[det,15,floor(smr_lut)]*smr_lut_frac
+//	   +nlin[det,15,ceil(smr_lut)]*(lut_step_smr-smr_lut_frac);
+
+
+//	rac_offset=alias(isfr?"MER_RAC_AX.ADS_Offset_FR_matrix":"MER_RAC_AX.ADS_Offset_RR_matrix");
+//	rac_offset_b2=vector(rac_offset[1]);
+//	rac_offset_b3=vector(rac_offset[2]);
+//	rac_offset_b5=vector(rac_offset[4]);
+//	rac_offset_b7=vector(rac_offset[6]);
+//	rac_offset_smr=vector(rac_offset[15]);
+
+//	smr=(nlin_corr?smr_c:smr)-rac_offset_smr[det,pix];
+
+//	smr_wt_fac_rr=vector(MER_RAC_AX.GADS_Corr_Control_Params.0.smr_wt_fac_rr);
+//	smr_wt_fac_fr=vector(MER_RAC_AX.GADS_Corr_Control_Params.0.smr_wt_fac_fr);
+
+//	smr_b2=smr*(isfr?smr_wt_fac_fr[1,0]:smr_wt_fac_rr[1]);
+//	smr_b3=smr*(isfr?smr_wt_fac_fr[2,0]:smr_wt_fac_rr[2]);
+//	smr_b5=smr*(isfr?smr_wt_fac_fr[4,0]:smr_wt_fac_rr[4]);
+//	smr_b7=smr*(isfr?smr_wt_fac_fr[6,0]:smr_wt_fac_rr[6]);
+
+//	rac_gain=alias(isfr?"MER_RAC_AX.ADS_Gain_FR_matrix":"MER_RAC_AX.ADS_Gain_RR_matrix");
+//	rac_gain_b2=vector(rac_gain[1]);
+//	rac_gain_b3=vector(rac_gain[2]);
+//	rac_gain_b5=vector(rac_gain[4]);
+//	rac_gain_b7=vector(rac_gain[6]);
+
+//	scaling_factors=vector(MER_CP1_AX.GADS_Scaling_Factors.0.sf_rad);
+
+//	rad2=
+//	   ((nlin_corr?b2_c:b2)-rac_offset_b2[det,pix]-(smr_corr?smr_b2:0))
+//	   *rac_gain_b2[det,pix]/scaling_factors[1]
+//	;
+
+//	rad3=
+//	   ((nlin_corr?b3_c:b3)-rac_offset_b3[det,pix]-(smr_corr?smr_b3:0))
+//	   *rac_gain_b3[det,pix]/scaling_factors[2]
+//	;
+
+//	rad5=
+//	   ((nlin_corr?b5_c:b5)-rac_offset_b5[det,pix]-(smr_corr?smr_b5:0))
+//	   *rac_gain_b5[det,pix]/scaling_factors[4]
+//	;
+
+//	rad7=
+//	   ((nlin_corr?b7_c:b7)-rac_offset_b7[det,pix]-(smr_corr?smr_b7:0))
+//	   *rac_gain_b7[det,pix]/scaling_factors[6]
+//	;
+
+	
+
+	// sun zenith angle in degrees
+
+	sun_ra=keep((line_sensing_time-vernal_equinox)/tropical_year*360,canvas_pix@index>0);
+
+	sun_lat=sin(ecliptic_angle*pi/180)*sin(sun_ra*pi/180);
+	sun_lat=keep(180/pi*atan(sun_lat/sqrt(1-sun_lat^2)),canvas_pix@index>0);
+
+	delta_lon=180+30;
+	cos_sun_zen_ang=
+	     sin(pi/180*lat)*sin(pi/180*sun_lat)
+	     +cos(pi/180*lat)*cos(pi/180*sun_lat)*cos(pi/180*(35/501*360/2-180-2/24*360+delta_lon))
+	;
+
+	sun_zen_ang_deg=acos(cos_sun_zen_ang)*180/pi;
+
+	rad2=b2;
+	rad3=b3;
+	rad4=b4;
+
+	sun_factor=sin(sun_el*pi/180);
+	refl2=rad2/sun_factor;
+	refl3=rad3/sun_factor;
+	refl4=rad4/sun_factor;
+	
+
+	// composite RGB with R=b2, G=b3 B=b4
+	red=refl4;
+	green=refl3;
+	blue=refl2;
+
+	red=	(red<=.163
+			?(0 + ((red - 0) / (.163 - 0)) * (144 - 0))
+			:(red<=.419
+				?(144 + ((red - .163) / (.419 - .163)) * (222 - 144))
+				:(222 + ((red - .419) / (1 - .419)) * (255 - 222))
+			)
+		)/255;
+
+	green=	(green<=.144
+			?(0 + ((green - 0) / (.144 - 0)) * (155 - 0))
+			:(green<=.359
+				?(155 + ((green - .144) / (.359 - .144)) * (203 - 155))
+				:(203 + ((green - .359) / (1 - .359)) * (255 - 203))
+			)
+		)/255;
+
+	blue=	(blue<=.222
+			?(0 + ((blue - 0) / (.222 - 0)) * (162 - 0))
+			:(blue<=.600
+				?(162 + ((blue - .222) / (.600 - .222)) * (244 - 162))
+				:(244 + ((blue - .600) / (1 - .600)) * (255 - 244))
+			)
+		)/255;
+
+
+	red=refl4;
+	green=refl3;
+	blue=refl2;
+
+	red=isnan(b4)?0:red;
+	green=isnan(b3)?0:green;
+	blue=isnan(b2)?0:blue;
+	nodata=isnan(b2)&&isnan(b3)&&isnan(b4);
+
+	// compose R/G/B channels
+
+	rgb=color(min(red,1),min(green,1),min(blue,1),!nodata);
+
+	// saturate
+	// rgb=rgb@S((rgb S)*1.4);
+
+
+
+// Output
+
+	// aggregate valid pixels in browse raster, let invalid be cropped out
+	invalid=0;
+	browse=rastermap(rgb,!invalid) @geo(lines_per_tp,pixels_per_tp/sampling,lon,lat);
+
+	outname=option("outname",filename);
+	bp=browse @name(outname)
+//		@over(grid_text)
+	;
+
+	warp_areas=vector(12) @exec(floor((det_pix1_canvas_fr[$1]+sampling/2-0.5)/sampling)-canvas_pix@first) ;
+	warp_areas=vector(12) @exec((warp_areas[$1]<0)&&(warp_areas[min($1+1,11)]<=0)?nan:max(warp_areas[$1],0)) ;
+
+	warp_file=asciilog()
+	   header
+	   ["areas=:"
+	      <<(isnan(warp_areas[1])?"":(warp_areas[1]<<":"))
+	      <<(isnan(warp_areas[2])?"":(warp_areas[2]<<":"))
+	      <<(isnan(warp_areas[3])?"":(warp_areas[3]<<":"))
+	      <<(isnan(warp_areas[4])?"":(warp_areas[4]<<":"))
+	      <<(isnan(warp_areas[5])?"":(warp_areas[5]<<":"))
+	      <<(isnan(warp_areas[6])?"":(warp_areas[6]<<":"))
+	      <<(isnan(warp_areas[7])?"":(warp_areas[7]<<":"))
+	      <<(isnan(warp_areas[8])?"":(warp_areas[8]<<":"))
+	      <<(isnan(warp_areas[9])?"":(warp_areas[9]<<":"))
+	      <<(isnan(warp_areas[10])?"":(warp_areas[10]<<":"))
+	      <<(isnan(warp_areas[11])?"":(warp_areas[11]))
+	   ]
+	;
+
+	// actual start/stop times of the lines extracted for reference in metadata
+	meta_file=asciilog()
+	   header
+	   footer
+	   ['<image name="'<<outname<<'">']endl
+	   ['\t<sensing_data mission="SENTINEL-2" sensor="MSI">']endl
+	   ['\t\t<datastrip satellite_unit="'<<sat_unit<<'">']endl
+	   ['\t\t\t<datatake id="'<<datatake<<'">']endl
+	   ['\t\t\t\t<start_time unit="UTC">'<<datestr(datenum(datatake[4]))ISO[0,18]<<'</start_time>']endl
+	   ['\t\t\t\t<msi_mode nuc_id="'<<nuc_table_id<<'">'<<msi_mode<<'</msi_mode>']endl
+	   ['\t\t\t</datatake>']endl
+	   ['\t\t\t<acq_station>'<<cgs<<'</acq_station>']endl
+	   ['\t\t\t<first_scene unit="UTC">'<<datestr(LINE_TIME[tpdf*num_margin_scenes],2000)ISO<<'</first_scene>']endl
+	   ['\t\t\t<last_scene unit="UTC">'<<datestr(LINE_TIME[tpdf*(num_margin_scenes+num_scenes)],2000)ISO<<'</last_scene>']endl
+	   ['\t\t</datastrip>']endl
+	   ['\t\t<sensing_segment>']endl
+	   ['\t\t\t<sensing_start unit="UTC">'<<sensing_start_str<<'</sensing_start>']endl
+	   ['\t\t\t<sensing_stop unit="UTC">'<<line_sensing_time_str<<'</sensing_stop>']endl
+	   ['\t\t\t<num_lines>'<<sensing_stop_line-sensing_start_line+1<<'</num_lines>']endl
+	   ['\t\t</sensing_segment>']endl
+	   ['\t</sensing_data>']endl
+	   ['\t<processing_data>']endl
+	   ['\t\t<image_processor name="'<<proc<<'" version="'<<proc_version<<'">']endl
+	   ['\t\t\t<processing_time>'<<proc_time<<'</processing_time>']endl
+	   ['\t\t\t<processing_parameters>']endl
+	   ['\t\t\t\t<sensing_start'<<(sensing_start_param==""?'/>':(' unit="UTC">'<<sensing_start_param<<'</sensing_start>'))]endl
+	   ['\t\t\t\t<sensing_stop'<<(sensing_stop_param==""?'/>':(' unit="UTC">'<<sensing_stop_param<<'</sensing_stop>'))]endl
+	   ['\t\t\t\t<det_overlap>'<<(det_overlap?'FULL':'REMOVE')<<'</det_overlap>']endl
+	   ['\t\t\t\t<viewing_directions>'<<words(VIEWDIR.BAND_VIEWDIR@FILENAME,".",0)<<'</viewing_directions>']endl
+	   ['\t\t\t</processing_parameters>']endl
+	   ['\t\t</image_processor>']endl
+	   ['\t</processing_data>']endl
+	   ['</image>']endl
+	;
+
+// Output Condition:
+
+	bp==0?(warp_file@name(outname<<".warp")+meta_file@name(outname<<".xml")):1

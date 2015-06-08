@@ -1,0 +1,15 @@
+Auto-Descriptive|General auto descriptor|*
+#
+# to be sure we start reading the stream at the first byte
+dummy|AChar|*|1
+
+# J2K detectors
+j2k_sign|String|J2K signature|4|*|4
+~is_j2k_jp2|UChar|it is a J2K jp2 file|% j2k_sign=="jP  "
+#
+#j2k_soc_marker|UChar|J2K codestream soc start marker|1|2|0
+#~is_j2k_cs|UChar|it is a J2K Codestream|% (j2k_soc_marker[0]=='0xff') && (j2k_soc_marker[1]=='0x4f')
+#
+# default is isp_buffer
+#~dictionary|String||% (strlen(dummy)>=0)&&is_j2k_jp2?"box_list":"marker_list"
+~dictionary|String||% is_j2k_jp2?"box_list":"marker_list"

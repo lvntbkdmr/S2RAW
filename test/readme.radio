@@ -1,0 +1,23 @@
+
+
+For the quick look (80m):
+
+imager S2RAW.proc \
+	-F test/KansasDatastrip/S2A_20130707T171621.INS-NOBS.0001.KansasDatastrip \
+	-FVIEWDIR etc/GIPP/S2A_OPER_GIP_VIEDIR_20130101000000_20200101000000.cqfd \
+	-FNUC etc/GIPP/S2A_OPER_GIP_R2EQOB*.cqfd \
+	-v -format png -Pdet_overlap 0 \
+	-max_lines 380 -max_cols 180 -line_offset 1190 -col_offset 1195 -Pb3e_offset -316 -Pb4e_offset -474
+
+
+For the full resolution (10m):
+
+imager S2RAW.proc \
+	-F test/KansasDatastrip/S2A_20130707T171621.INS-NOBS.0001.KansasDatastrip'&image_folder=LUM.fr' \
+	-FVIEWDIR etc/GIPP/S2A_OPER_GIP_VIEDIR_20130101000000_20200101000000.cqfd \
+	-FNUC etc/GIPP/S2A_OPER_GIP_R2EQOB*.cqfd \
+	-v -format png -Pdet_overlap 0 \
+	-max_lines 3040 -max_cols 1440 -line_offset 9520 -col_offset 9560 -Pb3e_offset -316 -Pb4e_offset -474
+
+
+

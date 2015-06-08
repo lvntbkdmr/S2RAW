@@ -1,0 +1,12 @@
+SecondaryHeader|S2 SAD ISP Secondary Header|12
+#
+tmp_byte|UChar||*
+~pus_version|UChar|3-bits 001|% bits(tmp_byte,4,3)
+service_type|UChar|code|*
+service_subtype|UChar|code|*
+destination_id|UChar|code|*
+obt|@../../OBT|*|*
+obt_status|@../../OBTStatus|*|*
+
+#need to fix record length explicitly to 12 if adding this line
+#sid|UChar|SID Code|*

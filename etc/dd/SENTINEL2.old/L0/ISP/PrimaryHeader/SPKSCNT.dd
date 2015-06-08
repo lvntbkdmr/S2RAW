@@ -1,0 +1,5 @@
+Generic_Header|Generic part of Envisat source packets|*
+#
+cnt|UShort|binary fields|*|*|
+~seq_flag|UChar|flag|% bits(cnt,14,2)
+~ssc|UShort|counter|% bits(cnt,0,14)

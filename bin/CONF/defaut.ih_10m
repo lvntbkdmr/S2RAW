@@ -1,0 +1,41 @@
+##############################################################################
+
+# IH 10m configuration file for Sentinel 2 mission
+
+###############################################################################
+
+
+fic_ih
+
+INCOL		2592	# number of column of the output image
+INBDL	0	# nummber of STRIPS of the output image (0 means decompress all)
+D		12	# dynamic of the pixels
+EDP		0	# exponent divisor pixel
+Filter53	0	# filters TO 5/3 (0 = use 9/7 filters; 1 = uses 5/3 ones)
+Filter97J2K	0	# filters 9/7 management (0 = ASIC ones, 1 = JP2K ones)
+ByPassPond	1	# ponderation Bypass 
+ByPassCentre	1	# refocusing Bypass 
+SeuilMask_HV	0	# masking treshold for H and V wavelet coefficients
+			# 0 = no masking, treshold masking 1/2/3
+ModeMask_HV     	1	# activates HV masking 
+			# 0 = 1 bit masking / 1 = 2 bits masking
+SeuilMask_D	0	# masking treshold for D wavelet coefficients			        # 0 = no masking, treshold masking 1/2/3
+ModeMask_D	0	# activates D masking
+			# 0 = 1 bit masking / 1 = 2 bits masking
+LoiAdapt	1	# adaptation law for the Run Length Rice coding
+ModeEBB		0	# activates EBBImage mode ( 0 = STRIP mode ; 1 = Full Image mode)
+ModeRegulation                3	# regulation mode of the source packet (1 : no regulation ; 2 = limited mode ; 3 = regulated mode using EBBLNC)
+EBBLNC		10455	# regulation value (lenght of the compressed source packet in words = 2 bytes)s
+max_boundary_band 144 # Scene lenght in number of STRIP (management of the non overlap mode)
+P9		256.0	# ponderation value P9
+P8		256.0	# ponderation value P8
+P7		256.0	# ponderation value P7
+P6		256.0	# ponderation value P6
+P5		256.0	# ponderation value P5
+P4		256.0	# ponderation value P4
+P3		256.0	# ponderation value P3
+P2		256.0	# ponderation value P2
+P1		256.0	# ponderation value P1
+P0		256.0	# ponderation value P0
+
+fin

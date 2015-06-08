@@ -1,0 +1,8 @@
+VIEWDIR|VIEWDIR|*
+#
+band_num|UChar|*|1
+~band_id|String|Band Identifier|% choose(band_num,"N/A","B1","B2","B3","B4","B5","B6","B7","B8","B8a","B9","B10","B11","B12")
+gipp_strlen|aUShort|*|2
+gipp|String|*|gipp_strlen
+num_configs|UChar|*|1
+VIEWDIR_TDI|@VIEWDIR_TDI|*|*|num_configs

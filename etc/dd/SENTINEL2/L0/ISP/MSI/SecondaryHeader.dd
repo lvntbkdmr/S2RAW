@@ -1,0 +1,5 @@
+S2 MSI ISP Secondary Header|*|*
+#
+sys_anc_data|@SystemAncillaryData|*|*|1|
+comp_status|@CompressionStatus|*|*|1|
+ins_anc_data|?option("#isp_comp",-1)<0?({comp_status.modop}==0):option("#isp_comp",-1) |InstrumentAncillaryDataUnion|*|*|*|

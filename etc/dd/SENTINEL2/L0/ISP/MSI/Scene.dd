@@ -1,0 +1,12 @@
+MSI Scene|MSI Scene| {+len} + {+SAD_TRAILER}@SIZE
+#
+first_isp_hdr|@/L0/ISP/PrimaryHeader|*|*|*|% option("#isp_offset",0)+(option("#isp_type","AISP")[0,0]=="A"?18:0)
+scene_obt|@/L0/ISP/OBT|*|*|*|*
+~last_isp_offset|ULLong|*|% hdr_size=scene_obt@OFFSET-6; band_type=choose(bits({first_isp_hdr.spkid.apid},0,4),-1,6,1,1,1,2,2,2,1,2,6,6,2,2); offset=choose(strlookup(option("#scene_type","half"),"apid","half","full"),-1,band_type<0?-1:((144/band_type-1)*(hdr_size+first_isp_hdr.spkln+7+0*(band_type==1?21026:11798))),109638144-13076+(6480-1)*hdr_size,2*(6480*hdr_size+109638144)-hdr_size-13076)
+~partial_scene|UChar|*|% scene_type=strlookup(option("#scene_type","half"),"apid","half","full"); 1st_apid_nok=choose(scene_type,1,0,(first_isp_hdr.spkid.apid&1791)!=0,first_isp_hdr.spkid.apid!=0); exp_last_apid=first_isp_hdr.spkid.apid+(scene_type>0?92:0); (1st_apid_nok||(first_isp_hdr.spkscnt.ssc!=0)||(last_isp_probe@DIM==0))?1:((last_isp_probe[0]{prim_hdr.spkid.apid}!=exp_last_apid)||(last_isp_probe[0]{scnd_hdr.sys_anc_data.scene_obt.time}!=scene_obt.time))
+~sad_trailer|UChar|*|% SAD_TRAILER@DIM>0 
+~len|ULLong|*|% (option("#idle",0)||partial_scene)?ISP@SIZE:last_isp_probe@OFFSET_NEXT
+~num_isp|ULong|*|% ISP@DIM
+ISP|@/L0/ISP/MSI&sad_interleave=0|*|*|% partial_scene?ISP@lookup(1,"scnd_hdr.sys_anc_data.scene_obt.time!={--.scene_obt.time}"):choose(strlookup(option("#scene_type","half"),"apid","half","full"),-1,144/choose(bits({first_isp_hdr.spkid.apid},0,4),-1,6,1,1,1,2,2,2,1,2,6,6,2,2),6480,2*6480) %| 0
+SAD_TRAILER|@../SimpleISP|*|% option("#scene_sad_interleave",0)<0?#filesize-{--.}@POS+{--.len}:{+len} %|% option("#scene_sad_interleave",0)==0?0:(((#filesize>0)&&({}@POS+len>=#filesize))?0:SAD_TRAILER@lookup(1,"len>10000")) %|% len
+last_isp_probe|@/L0/ISP/MSI|*|*|% {}@POS+last_isp_offset+120<#filesize?1:0 %| last_isp_offset

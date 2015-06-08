@@ -1,0 +1,18 @@
+TBoxUnion|Union Switch for TBox
+#
+default|Spare|?|% choose(lbox,lbox,lbox,xlbox[0]-8)-8
+jP|UChar|*|1|4
+ftyp|@ftyp|*|*|*
+jp2h|@index|*|*|% {dbox#jp2h}@lookup(1,"lbox@POS>={--.}@POS_NEXT")
+ihdr|@ihdr|*|*|*
+colr|@colr|*|*|*
+#jp2c|@marker|*|*|% 8
+jp2c|@marker|*|*|% num_tiles=option("#num_tiles",-1); num_tiles<0?({dbox#jp2c}@lookup("EOC","type")+1):({dbox#jp2c}@lookup("SOT","type")+num_tiles)
+res|@index|*|*|% {dbox#res}@lookup(1,"lbox@POS>={--.}@POS_NEXT")
+resd|@resd|*|*
+resc|@resc|*|*
+uuid|@uuid|*|*
+asoc|@index|*|*|% {dbox#asoc}@lookup(1,"lbox@POS>={--.}@POS_NEXT")
+lbl|String|*|% choose(lbox,lbox,lbox,xlbox[0]-8)-8
+xml|String|*|% choose(lbox,lbox,lbox,xlbox[0]-8)-8
+#asoc|@index|*|*|% 3

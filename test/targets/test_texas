@@ -1,0 +1,7 @@
+
+// format name;lon;lat;ext
+
+targets	=""
+	<<"|San Antonio;-98.498;29.430;10"
+	<<"|Corpus Christi Bay;-97.269;27.782;15"
+	;

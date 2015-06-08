@@ -1,0 +1,9 @@
+SOT||% {+Psot}-4
+#
+Isot|UShort|Tile number|2
+Psot|ULong|Tile Part size|4
+TPsot|UChar|Tile Part instance|1
+TNsot|UChar|Number of tile-parts of the tile in the codestream|1
+hdr|@index|*|*|% {hdr}@lookup("SOD","type")
+sod_marker|@index|SOD marker|*
+j2kdata|UChar|*|*|10

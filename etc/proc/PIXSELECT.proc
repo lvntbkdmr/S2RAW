@@ -1,0 +1,71 @@
+// GIPP VIEWDIR processing to derive image pixel association to detector image space 
+
+	// processing of detector overlaps (default is to remove overlaps)
+	det_overlap=option("det_overlap",0);
+
+	num_det_pixels_fr={VIEWDIR.BAND_VIEWDIR.band_id=B2.VIEWDIR_TDI.0.num_pixels}; // 2548 for 10m bands
+
+	det_ac_pt={VIEWDIR.BAND_VIEWDIR.band_id=B2.VIEWDIR_TDI.0.TAN_PSI_Y};
+
+	half_inter_det=75;
+	det_pix_range_fr=vector(12,2) [
+	      $2==0
+	      ?( // minimum
+	         det_overlap?0:(
+	            $1<6
+	            ?($1?half_inter_det:0)
+	            :(det_ac_pt[$1]@minlookup(det_ac_pt[$1-1][num_det_pixels_fr-1-half_inter_det])+1)
+                 )
+	      )
+	      :( // maximum
+	         det_overlap?(num_det_pixels_fr-1):(
+	            $1<6
+	            ?(det_ac_pt[$1]@maxlookup(det_ac_pt[$1+1][half_inter_det])-1)
+	            :(num_det_pixels_fr-1-($1==11?0:half_inter_det))
+	         )
+	      )
+	];
+
+	det_numpix_fr=vector(12) [det_pix_range_fr[$1,1]-det_pix_range_fr[$1,0]+1];
+
+	det_pix1_canvas_fr=vector(12) [
+	    ($1>0?det_numpix_fr[0]:0)
+	   +($1>1?det_numpix_fr[1]:0)
+	   +($1>2?det_numpix_fr[2]:0)
+	   +($1>3?det_numpix_fr[3]:0)
+	   +($1>4?det_numpix_fr[4]:0)
+	   +($1>5?det_numpix_fr[5]:0)
+	   +($1>6?det_numpix_fr[6]:0)
+	   +($1>7?det_numpix_fr[7]:0)
+	   +($1>8?det_numpix_fr[8]:0)
+	   +($1>9?det_numpix_fr[9]:0)
+	   +($1>10?det_numpix_fr[10]:0)
+	   +($1>11?det_numpix_fr[11]:0)
+	];
+
+	canvas_numpix_fr=det_pix1_canvas_fr[11]+det_numpix_fr[11];
+//	canvas_numpix_fr=const(det_pix1_canvas_fr[11]+det_numpix_fr[11]);
+
+	// from canvas pixel to detector in fr space
+	detector_fr=vector(canvas_numpix_fr) [
+	   minlookup($1,
+	      det_pix1_canvas_fr[0],
+	      det_pix1_canvas_fr[1],
+	      det_pix1_canvas_fr[2],
+	      det_pix1_canvas_fr[3],
+	      det_pix1_canvas_fr[4],
+	      det_pix1_canvas_fr[5],
+	      det_pix1_canvas_fr[6],
+	      det_pix1_canvas_fr[7],
+	      det_pix1_canvas_fr[8],
+	      det_pix1_canvas_fr[9],
+	      det_pix1_canvas_fr[10],
+	      det_pix1_canvas_fr[11]
+	   )
+	];
+
+	// from canvas pixel to detector pixel in fr space
+	det_pix_fr=vector(detector_fr)
+	   [$1-det_pix1_canvas_fr[$0]+det_pix_range_fr[$0,0]]
+	;
+

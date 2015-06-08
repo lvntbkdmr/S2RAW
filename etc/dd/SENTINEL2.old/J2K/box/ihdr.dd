@@ -1,0 +1,9 @@
+ihdr||*
+#
+height|ULong|image height (pixels)|4
+width|ULong|image width (pixels)|4
+nc|UShort|number of components|2
+bpx|UChar|bits per components|1
+ctype|UChar|compression type|1
+unkc|UChar|Colourspace Unknown flag|1
+ipr|UChar|IPR flag|1

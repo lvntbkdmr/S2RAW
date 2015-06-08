@@ -1,0 +1,5 @@
+CanvasPixels| LUM Canvas Pixels|*| LITTLE-ENDIAN
+#
+char|SChar|*|*|
+short|SShort|*|*
+float|Float|*|*

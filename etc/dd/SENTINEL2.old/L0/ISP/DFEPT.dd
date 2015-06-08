@@ -1,0 +1,6 @@
+DFEPT|DFEP Timestamp Record|*
+# Time is referenced on 2000-01-01 at 00:00:00
+~time|DateTime|2000|% days+(millisec+microsec/1000)/24/3600/1000
+days|UShort|days|2
+millisec|ULong|10-3 sec|4
+microsec|UShort|10-6 sec|2

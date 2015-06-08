@@ -1,0 +1,5 @@
+Generic_Header|Generic part of Envisat source packets|*
+#
+spkid|@SPKID|binary fields|*|*|
+spkscnt|@SPKSCNT|binary fields|*|*|
+spkln|UShort|bytes|*|1|

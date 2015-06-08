@@ -1,0 +1,73 @@
+
+	pippo=option("pippo",1);
+
+	sampling=1;
+	det=6;
+
+	pixel=raster("image","");
+	b2=pixel;
+	b3=pixel;
+	b4=pixel;
+
+	l=lines(pixel@lines);
+	det_pix=columns(pixel@columns);
+
+
+	num_bands=3;
+	band_num=vector(3) [1,2,3];
+	scene_line=l%(16*144/sampling);
+
+	tdi_co=vector(num_bands) ["NO_TDI","APPLIED","APPLIED"];
+
+	coeff_ob=vector(num_bands,4) [raster(
+		"EQOB.BAND.band_num="<<band_num[$1]<<".COEFF.tdi_config="<<tdi_co[$1]<<"."<<choose($2,"","COEFF_A1","COEFF_A2","COEFF_D","COEFF_ZS"),
+		""
+	) @buffer];
+
+	coeff_og=vector(num_bands,4) [raster(
+		"EQOG.BAND.band_num="<<band_num[$1]<<".COEFF.tdi_config="<<tdi_co[$1]<<"."<<choose($2,"","COEFF_A","COEFF_B","COEFF_C","COEFF_D"),
+		""
+	) @buffer];
+
+
+	// try using -FEQOB pathname::memory
+
+	det_pix_coreg=vector(3) [det_pix];
+
+	A1=vector(num_bands) [coeff_ob[$1,0][det,det_pix_coreg[$1]]ABS];
+	A2=vector(num_bands) [coeff_ob[$1,1][det,det_pix_coreg[$1]]ABS];
+	D =vector(num_bands) [coeff_ob[$1,2][det,det_pix_coreg[$1]]ABS];
+	Zs=vector(num_bands) [coeff_ob[$1,3][det,det_pix_coreg[$1]]ABS];
+
+	epsilon=vector(num_bands) [ EQOB.BAND["band_num="<<band_num[$1]]COEFF["tdi_config="<<tdi_co[$1]]epsilon ];
+
+	Z1=((b2<=A1[0]*Zs[0])?(b2/A1[0]):((b2-(A1[0]-A2[0])*Zs[0])/A2[0]));
+	X1=((b2+epsilon[0])>=4095?4095:(b2==0?nan:(Z1+D[0])));
+//IAS06-04: DARK SIGNAL CORRECTION
+	//Icycle=l%6;
+	DNU=vector(num_bands) [coeff_og[$1,3][det,det_pix_coreg[$1],scene_line%6]ABS];
+	Inter_rad2=X1-DNU[0];
+    only_on_board=Inter_rad2<=Zs[0]?(Inter_rad2*A1[0]):(Zs[0]*A1[0]+A2[0]*(Inter_rad2-Zs[0]));
+	COEFF_A=vector(num_bands) [coeff_og[$1,0][det,det_pix_coreg[$1]]ABS];
+	COEFF_B=vector(num_bands) [coeff_og[$1,1][det,det_pix_coreg[$1]]ABS];
+	COEFF_C=vector(num_bands) [coeff_og[$1,2][det,det_pix_coreg[$1]]ABS];
+
+	rad2=Inter_rad2*((COEFF_A[0]*(Inter_rad2^2))+(COEFF_B[0]*Inter_rad2)+COEFF_C[0]);
+
+	//sun_factor=sin(sun_el);
+	//refl2=rad2/sun_factor;
+	//refl3=rad3/sun_factor;
+	//refl4=rad4/sun_factor;
+	sun_factor=1;//sin(sun_el);
+	refl2=sampling>1?b2:(pippo==0?b2:(rad2/sun_factor));
+	
+	browse=rastermap(refl2/4095);
+        browse1=rastermap(X1/4095); 
+        browse2=rastermap(Z1/4095);
+        browse3=rastermap(only_on_board/4095);
+        bp=browse@name('refl');
+        bp1=browse1@name('X1');
+        bp2=browse2@name('Z1');
+        bp3=browse3@name('only_on_board');
+        final=bp+bp1+bp2+bp3
+

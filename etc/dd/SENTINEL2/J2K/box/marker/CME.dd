@@ -1,0 +1,6 @@
+CME|| len[0]-2
+#
+Rcme|UShort|Registration value|2
+Ccme|UChar|CME Data|1|% {}@SIZE-2 %|*
+#Ccme_char|AChar|CME Character|1|% {}@SIZE-2 %|2
+Ccme_str|String|Comment|% {}@SIZE-2 %|*|2

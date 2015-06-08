@@ -1,0 +1,3 @@
+ImageFolder|Folder of Image Data Files|*|LITTLE-ENDIAN
+#
+IMAGE_DATA|@ImageData|*|*|inf

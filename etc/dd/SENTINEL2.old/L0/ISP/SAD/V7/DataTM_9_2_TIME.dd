@@ -1,0 +1,7 @@
+S2 SAD ISP Secondary Header|*|*
+#
+s_field|UChar|code|*
+p_field|UChar|code|*
+obt|@../OBT|*|*
+obt_status|@../OBTStatus|*|*
+ops|@../OPSVector|*|*
